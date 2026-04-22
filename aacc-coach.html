@@ -2274,6 +2274,20 @@ function switchTab(tab) {
   showScreen(screenMap[tab] || 'chat-screen');
   const inputArea = document.getElementById('input-area');
   if (inputArea) inputArea.style.display = tab === 'chat' ? 'block' : 'none';
+
+  if (tab === 'chat' && chatEl.innerHTML === '') {
+    const key = convoKey(activeParentIdx, activeChildIdx);
+    const saved = conversations[key] || [];
+    if (saved.length > 0) {
+      document.getElementById('primary-chips').classList.add('hidden');
+      saved.forEach(msg => {
+        if (msg.role === 'user') addBubble('user', msg.content);
+        else addBubble('coach', msg.content);
+      });
+      setTimeout(() => { chatEl.scrollTop = chatEl.scrollHeight; }, 100);
+    }
+  }
+
   if (tab==='diary') renderDiary();
   if (tab==='achievements') renderAchievements();
   if (tab==='report') initReportScreen();
