@@ -299,7 +299,7 @@ textarea.form-input{resize:none;min-height:80px;line-height:1.5;font-size:14px;}
 
 #bottom-nav{display:none;flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 16px;position:fixed;bottom:0;left:0;right:0;z-index:50;}
 #bottom-nav.visible{display:flex;}
-#input-area{padding:12px 14px 20px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;display:none;position:fixed;bottom:72px;left:0;right:0;z-index:40;}
+#input-area{padding:12px 14px 20px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;display:none;}
 .nav-tabs{display:flex;width:100%;}
 .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;transition:all .2s;border:none;background:transparent;}
 .nav-tab .nt-icon{font-size:20px;}
@@ -2277,7 +2277,7 @@ function switchTab(tab) {
 
 function showBottomNav() {
   document.getElementById('bottom-nav').classList.add('visible');
-  document.getElementById('input-area').style.display = 'block';
+  document.getElementById('input-area').style.display = currentTab === 'chat' ? 'block' : 'none';
   document.getElementById('crisis-fab').classList.add('visible');
 }
 function hideBottomNav() {
