@@ -1652,7 +1652,7 @@ function cPrev() {
 function updateCProgress() {
   document.getElementById('c-progress').style.width = (cStep / C_STEPS * 100) + '%';
   document.getElementById('c-btn-back').style.display = cStep > 1 ? 'block' : 'none';
-  document.getElementById('c-btn-next').textContent = cStep === C_STEPS ? 'Hablar con Noa →' : 'Siguiente →';
+  document.getElementById('c-btn-next').textContent = cStep === C_STEPS ? 'Finalizar →' : 'Siguiente →';
 }
 function showCStep(n) {
   document.querySelectorAll('#child-onboard .step').forEach(s => s.classList.remove('active','exit'));
@@ -1716,7 +1716,7 @@ function startChat(childIdx) {
   switchTab('chat');
 
   if (saved.length === 0) {
-    showPrimaryChips();
+    document.getElementById('primary-chips').classList.remove('hidden');
   } else {
     // Restore conversation — hide chips
     document.getElementById('primary-chips').classList.add('hidden');
