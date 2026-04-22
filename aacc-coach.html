@@ -2228,7 +2228,7 @@ async function sendMessage() {
   try {
     const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1200, system: buildSystemPrompt(), messages: msgs })
+      body: JSON.stringify({ model:'claude-opus-4-5', max_tokens:1200, system: buildSystemPrompt(), messages: msgs })
     });
     const data = await res.json();
     if (data.error) {
@@ -2438,7 +2438,7 @@ async function analyzeDiaryDrawing(entry, drawing) {
   try {
     const res = await fetch('/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, system: buildSystemPrompt(), messages: history })
+      body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 400, system: buildSystemPrompt(), messages: history })
     });
     const data = await res.json();
     const reply = data.content?.[0]?.text || '';
@@ -2499,7 +2499,7 @@ async function checkWeeklySummary() {
     const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:400,
+        model:'claude-opus-4-5', max_tokens:400,
         system: `Eres Noa, coach AACC. Analiza el registro emocional semanal de ${activeChild?.nombre||'el niño/a'} (${activeChild?.edad}, ${activeChild?.diagnostico}) y escribe un resumen breve y cálido para su padre/madre. Detecta patrones, momentos de mejora y qué merece atención. Máximo 4 frases. Sin JSON, solo texto natural.`,
         messages: [{role:'user', content: `Registro de la semana:\n${summary}`}]
       })
@@ -2669,7 +2669,7 @@ Perfil padre/madre: ${activeParent?.p_crisis||''} — gestión emocional: ${acti
   try {
     const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:200, system:crisisPrompt, messages:crisisHistory})
+      body: JSON.stringify({model:'claude-opus-4-5', max_tokens:200, system:crisisPrompt, messages:crisisHistory})
     });
     const data = await res.json();
     const reply = data.content?.[0]?.text || '';
