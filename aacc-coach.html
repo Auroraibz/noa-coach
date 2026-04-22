@@ -2200,6 +2200,9 @@ async function sendMessage() {
   const att = chatAttachment;
   if (!text && !att || isLoading) return;
 
+  // Always hide chips when sending a message
+  document.getElementById('primary-chips').classList.add('hidden');
+
   inputEl.value=''; inputEl.style.height='auto'; sendBtn.disabled=true; isLoading=true;
 
   const history = getHistory();
