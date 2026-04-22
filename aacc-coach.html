@@ -2231,6 +2231,12 @@ async function sendMessage() {
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1200, system: buildSystemPrompt(), messages: msgs })
     });
     const data = await res.json();
+    if (data.error) {
+      removeTyping();
+      addCoachBubble('Error: ' + (data.error.message || JSON.stringify(data.error)));
+      isLoading=false; sendBtn.disabled = false;
+      return;
+    }
     const reply = data.content?.[0]?.text || '{}';
     removeTyping();
     // Save text version to history
