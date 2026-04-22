@@ -2226,7 +2226,7 @@ async function sendMessage() {
   showTyping();
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1200, system: buildSystemPrompt(), messages: msgs })
     });
@@ -2430,7 +2430,7 @@ async function analyzeDiaryDrawing(entry, drawing) {
   }];
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, system: buildSystemPrompt(), messages: history })
     });
@@ -2490,7 +2490,7 @@ async function checkWeeklySummary() {
   const summary = weekEntries.map(e => `${new Date(e.date).toLocaleDateString('es-ES',{weekday:'short'})}: ${e.label} (intensidad ${e.intensity})${e.note ? ' — ' + e.note : ''}`).join('\n');
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         model:'claude-sonnet-4-20250514', max_tokens:400,
@@ -2661,7 +2661,7 @@ REGLAS: Máximo 3 frases. Directa e inmediata. UNA acción concreta para hacer A
 Perfil padre/madre: ${activeParent?.p_crisis||''} — gestión emocional: ${activeParent?.p_gestion||''}`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:200, system:crisisPrompt, messages:crisisHistory})
     });
