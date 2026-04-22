@@ -1,0 +1,3126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Noa · Coach AACC</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0e0c; --surface:#1a1815; --surface2:#242220;
+  --border:#2e2b28; --accent:#e8956d; --accent2:#c4714a;
+  --text:#f0ebe4; --muted:#8a8480;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+
+header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--surface);flex-shrink:0;}
+.logo-dot{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0a882,var(--accent2));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.header-text h1{font-family:'Fraunces',serif;font-weight:600;font-size:17px;}
+.header-text p{font-size:11px;color:var(--muted);margin-top:1px;}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#5dbf7a;margin-left:auto;box-shadow:0 0 8px #5dbf7a88;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* ── SHARED ── */
+.scrollable{overflow-y:auto;padding:24px 18px 30px;gap:18px;display:flex;flex-direction:column;}
+.scrollable::-webkit-scrollbar{width:3px;}
+.scrollable::-webkit-scrollbar-thumb{background:var(--border);}
+
+.hero{text-align:center;padding:8px 0;}
+.hero .av{width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0a882,var(--accent2));display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;}
+.hero h2{font-family:'Fraunces',serif;font-weight:600;font-size:22px;line-height:1.3;}
+.hero h2 em{color:var(--accent);font-style:normal;}
+.hero p{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.55;}
+
+.noa-bubble{background:var(--surface2);border:1px solid var(--border);border-radius:16px;border-top-left-radius:4px;padding:14px 16px;font-size:13.5px;line-height:1.65;color:var(--text);position:relative;margin-top:8px;}
+.noa-bubble::before{content:'Noa';position:absolute;top:-18px;left:0;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.noa-bubble strong{color:var(--accent);font-weight:500;}
+
+.sec-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.form-label{font-size:13px;color:var(--muted);margin-bottom:8px;display:block;}
+.form-label span{color:var(--accent);}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:300;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--muted);}
+select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%238a8480'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+select.form-input option{background:#1a1815;}
+textarea.form-input{resize:none;min-height:80px;line-height:1.5;font-size:14px;}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.opts.one{grid-template-columns:1fr;}
+.opt{background:var(--surface2);border:2px solid var(--border);border-radius:13px;padding:13px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);line-height:1.3;}
+.opt:hover{border-color:var(--accent);color:var(--text);}
+.opt.selected{border-color:var(--accent);background:rgba(232,149,109,.1);color:var(--text);}
+.dot{width:17px;height:17px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.opt.radio.selected .dot{border-color:var(--accent);background:var(--accent);}
+.opt.radio.selected .dot::after{content:'';width:6px;height:6px;border-radius:50%;background:white;}
+.box{width:17px;height:17px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.opt.check.selected .box{border-color:var(--accent);background:var(--accent);}
+.opt.check.selected .box::after{content:'✓';font-size:11px;color:white;font-weight:700;}
+
+.btn-primary{width:100%;background:var(--accent);border:none;border-radius:14px;padding:15px;color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-primary:active{transform:scale(.99);}
+.btn-secondary{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:14px;padding:14px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text);}
+
+/* ── QUIÉN ENTRA ── */
+#who-screen{overflow-y:auto;padding:24px 18px 30px;gap:16px;flex:1;}
+#who-screen::-webkit-scrollbar{width:3px;}
+#who-screen::-webkit-scrollbar-thumb{background:var(--border);}
+#who-screen .parent-cards{display:flex;flex-direction:column;gap:12px;}
+
+/* ── PIN MODAL ── */
+#pin-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:999;padding:24px;}
+#pin-modal.open{display:flex;}
+.pin-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:18px;text-align:center;}
+.pin-box h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px;}
+.pin-box p{font-size:13px;color:var(--muted);line-height:1.5;}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin:4px 0;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);transition:all .2s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.pin-btn{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:20px;font-weight:400;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.pin-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pin-btn:active{transform:scale(.95);}
+.pin-btn.del{font-size:16px;color:var(--muted);}
+.pin-error{font-size:13px;color:#e86d6d;min-height:18px;}
+.pin-cancel{background:transparent;border:none;color:var(--muted);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:4px;}
+.pin-cancel:hover{color:var(--text);}
+
+/* ── DELETE CONFIRM ── */
+#del-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:999;padding:24px;}
+#del-modal.open{display:flex;}
+.del-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:16px;text-align:center;}
+.del-box h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;}
+.del-box p{font-size:13px;color:var(--muted);line-height:1.5;}
+.del-actions{display:flex;gap:10px;}
+.del-cancel{flex:1;background:transparent;border:1px solid var(--border);border-radius:12px;padding:13px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;}
+.del-confirm{flex:1;background:#c0392b;border:none;border-radius:12px;padding:13px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;}
+.parent-card{background:var(--surface2);border:2px solid var(--border);border-radius:18px;padding:18px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .2s;}
+.parent-card:hover{border-color:var(--accent);}
+.parent-card:active{transform:scale(.98);}
+.parent-card .pc-av{width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0a882,var(--accent2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;}
+.parent-card .pc-av img{width:100%;height:100%;object-fit:cover;}
+.parent-card .pc-info{flex:1;}
+.parent-card .pc-name{font-size:16px;font-weight:500;color:var(--text);}
+.parent-card .pc-role{font-size:12px;color:var(--muted);margin-top:2px;}
+.parent-card .pc-arrow{color:var(--muted);font-size:20px;}
+.parent-card .pc-del{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;transition:all .2s;}
+.parent-card .pc-del:hover{border-color:#e86d6d;}
+.parent-card.new-parent{border-style:dashed;color:var(--muted);}
+.parent-card.new-parent:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── ONBOARDING PADRE ── */
+.progress-bar{height:3px;background:var(--border);flex-shrink:0;}
+.progress-fill{height:100%;background:var(--accent);transition:width .4s ease;border-radius:2px;}
+.steps-container{flex:1;overflow:hidden;position:relative;}
+.step{position:absolute;inset:0;overflow-y:auto;padding:24px 20px 20px;display:flex;flex-direction:column;gap:18px;opacity:0;pointer-events:none;transform:translateX(40px);transition:all .32s ease;}
+.step.active{opacity:1;pointer-events:all;transform:translateX(0);}
+.step.exit{opacity:0;transform:translateX(-40px);}
+.step::-webkit-scrollbar{width:3px;}
+.step::-webkit-scrollbar-thumb{background:var(--border);}
+.step-num{display:inline-block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:8px;}
+.step h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;line-height:1.3;margin-bottom:4px;}
+.step h2 em{color:var(--accent);font-style:normal;}
+.step p.sub{font-size:13px;color:var(--muted);line-height:1.5;}
+.step-nav{flex-shrink:0;padding:12px 18px 22px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:10px;}
+.btn-back{padding:14px 18px;border-radius:13px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .2s;}
+.btn-back:hover{border-color:var(--accent);color:var(--text);}
+.btn-next{flex:1;padding:14px;border-radius:13px;border:none;background:var(--accent);color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;}
+.btn-next:hover{background:var(--accent2);}
+
+/* photo */
+.photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.photo-circle{width:88px;height:88px;border-radius:50%;background:var(--surface2);border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
+.photo-circle:hover{border-color:var(--accent);}
+.photo-circle img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;}
+.photo-circle .pi{font-size:24px;}
+.photo-circle .ph{font-size:10px;color:var(--muted);margin-top:4px;text-align:center;line-height:1.3;}
+.photo-circle.has-photo .pi,.photo-circle.has-photo .ph{display:none;}
+.photo-lbl{font-size:12px;color:var(--muted);}
+
+/* ── SELECTOR HIJO ── */
+#child-selector{overflow:hidden;}
+#child-selector .cs-inner{overflow-y:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:12px;flex:1;}
+#child-selector .cs-inner::-webkit-scrollbar{width:3px;}
+.cs-header{display:flex;align-items:center;gap:10px;padding-bottom:4px;}
+.cs-parent-badge{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 8px;cursor:pointer;transition:all .2s;}
+.cs-parent-badge:hover{border-color:var(--accent);}
+.cs-parent-badge .badge-av{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0a882,var(--accent2));display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden;flex-shrink:0;}
+.cs-parent-badge .badge-av img{width:100%;height:100%;object-fit:cover;}
+.cs-parent-badge span{font-size:12px;color:var(--text);font-weight:500;}
+.cs-title{font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:var(--text);}
+
+.child-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;}
+.child-card:hover{border-color:var(--accent);}
+.child-card:active{transform:scale(.98);}
+.child-card .ch-av{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0a882,var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
+.child-card .ch-av img{width:100%;height:100%;object-fit:cover;}
+.child-card .ch-info{flex:1;}
+.child-card .ch-name{font-size:15px;font-weight:500;color:var(--text);}
+.child-card .ch-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.child-card .ch-edit{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;transition:all .2s;color:var(--muted);}
+.child-card .ch-edit:hover{border-color:var(--accent);color:var(--accent);}
+.child-card .ch-arrow{color:var(--muted);font-size:18px;}
+
+.add-btn{background:transparent;border:1.5px dashed var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;color:var(--muted);font-size:14px;font-family:'DM Sans',sans-serif;}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.add-btn .plus{width:40px;height:40px;border-radius:50%;border:1.5px dashed currentColor;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+
+/* ── ONBOARDING HIJO ── */
+/* reuses step styles */
+
+/* ── CHAT ── */
+#chat-screen{flex-direction:column;}
+#chat{overflow-y:auto;padding:12px 16px 16px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth;}
+#chat:not(:empty){flex:1;}
+#primary-chips:not(.hidden) ~ #chat{flex:0;}
+#chat-pill{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.pill-av{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0a882,var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;overflow:hidden;flex-shrink:0;}
+.pill-av img{width:100%;height:100%;object-fit:cover;}
+#pill-name{font-size:13px;font-weight:500;color:var(--accent);}
+#pill-meta{font-size:11px;color:var(--muted);}
+.pill-sep{color:var(--border);font-size:14px;}
+#pill-parent{font-size:11px;color:var(--muted);}
+.pill-change{margin-left:auto;font-size:11px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:20px;cursor:pointer;white-space:nowrap;}
+.pill-change:hover{border-color:var(--accent);color:var(--accent);}
+
+#chat::-webkit-scrollbar{width:3px;}
+#chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.bw{display:flex;flex-direction:column;max-width:88%;animation:fadeUp .3s ease forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bw.user{align-self:flex-end;align-items:flex-end;}
+.bw.coach{align-self:flex-start;align-items:flex-start;}
+.bl{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:400;letter-spacing:.5px;text-transform:uppercase;}
+.bb{padding:13px 16px;border-radius:18px;font-size:14.5px;line-height:1.6;font-weight:300;}
+.bw.user .bb{background:var(--accent);color:#1a0f08;border-bottom-right-radius:5px;font-weight:400;}
+.bw.coach .bb{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:5px;}
+.noa-formatted{padding:2px 0;}
+.noa-section{font-size:13px;font-weight:600;color:var(--accent);margin-top:10px;margin-bottom:4px;letter-spacing:.2px;}
+.noa-section:first-child{margin-top:0;}
+.noa-action{font-size:14px;color:var(--text);line-height:1.5;padding:2px 0;}
+.noa-quote{font-size:14px;color:var(--text);font-style:italic;background:rgba(232,149,109,.08);border-left:2px solid var(--accent);padding:6px 10px;border-radius:0 8px 8px 0;margin:4px 0;}
+.noa-line{font-size:14px;color:var(--muted);line-height:1.5;}
+.cs2{margin-top:10px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface);}
+.cst{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.cst.hacer{color:#6db8e8}.cst.decir{color:#9de88a}.cst.cuando{color:#e8d06d}.cst.porque{color:#cc8ae8}
+.cs2 ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.cs2 ul li{font-size:13.5px;line-height:1.55;color:var(--text);padding-left:14px;position:relative;}
+.cs2 ul li::before{content:'›';position:absolute;left:0;color:var(--muted);}
+.tw{display:flex;flex-direction:column;max-width:88%;align-self:flex-start;align-items:flex-start;}
+.ti{display:flex;align-items:center;gap:5px;padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:18px;border-bottom-left-radius:5px;}
+.ti span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:typing 1.2s infinite;}
+.ti span:nth-child(2){animation-delay:.2s}.ti span:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+#input-area{padding:12px 14px 20px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;position:relative;z-index:10;}
+#chat-screen{flex-direction:column;display:none;}
+#chat-screen.active{display:flex;}
+#chat{flex:1;overflow-y:auto;padding:12px 16px 16px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth;min-height:0;}
+#chat::-webkit-scrollbar{width:3px;}
+#chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+#primary-chips{flex:1;overflow-y:auto;padding:12px 14px 12px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch;min-height:0;}
+#primary-chips.hidden{display:none !important;}
+#primary-chips::-webkit-scrollbar{width:3px;}
+.home-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;text-align:center;padding:4px 0 2px;color:var(--text);}
+.home-title span{color:var(--accent);}
+
+.home-section{border-radius:18px;padding:14px;}
+.home-section.urgent{background:rgba(192,57,43,.12);border:1.5px solid rgba(192,57,43,.35);}
+.home-section.calm{background:rgba(232,149,109,.07);border:1px solid rgba(232,149,109,.2);}
+
+.urgent-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(192,57,43,.25);border:1px solid rgba(192,57,43,.4);color:#e86d6d;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.5px;margin-bottom:8px;}
+.home-section-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.calm-title{color:var(--accent);}
+.home-section-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
+
+.urgent-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.urgent-chip{background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);border-radius:12px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:11.5px;color:var(--text);text-align:center;line-height:1.3;}
+.urgent-chip span{font-size:22px;}
+.urgent-chip:hover,.urgent-chip:active{background:rgba(192,57,43,.3);border-color:rgba(192,57,43,.6);}
+.urgent-full{grid-column:1/-1;flex-direction:row;justify-content:center;gap:8px;font-size:13px;padding:10px;}
+
+.calm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.calm-chip{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:11.5px;color:var(--text);text-align:center;line-height:1.3;}
+.calm-chip span{font-size:22px;}
+.calm-chip:hover,.calm-chip:active{border-color:var(--accent);background:rgba(232,149,109,.08);}
+
+.home-support{display:flex;align-items:flex-start;gap:10px;background:rgba(232,149,109,.06);border:1px solid rgba(232,149,109,.15);border-radius:14px;padding:12px 14px;}
+.home-support>span{font-size:20px;flex-shrink:0;margin-top:2px;}
+.hs-title{font-size:13px;font-weight:500;color:var(--accent);margin-bottom:2px;}
+.hs-sub{font-size:12px;color:var(--muted);line-height:1.5;}
+
+#quick-chips{display:none;}
+.chip{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+#input-wrap{display:flex;align-items:flex-end;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:10px 10px 10px 16px;transition:border-color .2s;}
+#input-wrap:focus-within{border-color:var(--accent)}
+#user-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:300;resize:none;max-height:120px;line-height:1.5;}
+#user-input::placeholder{color:var(--muted)}
+#send-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+#send-btn:hover{background:var(--accent2);transform:scale(1.05)}#send-btn:active{transform:scale(.95)}#send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+/* ── FILE UPLOAD ── */
+.attach-btn{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .2s;}
+.attach-btn:hover{border-color:var(--accent);}
+#file-preview{display:none;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border-radius:12px;margin-bottom:8px;}
+#file-preview.show{display:flex;}
+#file-preview img{width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
+#file-preview .fp-info{flex:1;min-width:0;}
+#file-preview .fp-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#file-preview .fp-type{font-size:11px;color:var(--muted);margin-top:2px;}
+#file-preview .fp-remove{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;}
+#file-preview .fp-remove:hover{color:#e86d6d;}
+.user-file-bubble{margin-top:8px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;max-width:200px;}
+.user-file-bubble img{width:40px;height:40px;object-fit:cover;border-radius:6px;}
+.user-file-bubble .uf-info .uf-name{font-size:12px;color:var(--text);}
+.user-file-bubble .uf-info .uf-type{font-size:11px;color:var(--muted);}
+
+/* ── PROFILE FILES ── */
+.profile-files-section{display:flex;flex-direction:column;gap:10px;}
+.profile-file-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.profile-file-card img{width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+.profile-file-card .pf-icon{width:44px;height:44px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.profile-file-card .pf-info{flex:1;min-width:0;}
+.profile-file-card .pf-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.profile-file-card .pf-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.profile-file-card .pf-del{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;}
+.profile-file-card .pf-del:hover{color:#e86d6d;}
+.add-file-btn{background:transparent;border:1.5px dashed var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;transition:all .2s;width:100%;}
+.add-file-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+#bottom-nav{display:none;flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 16px;position:fixed;bottom:0;left:0;right:0;z-index:50;}
+#bottom-nav.visible{display:flex;}
+.nav-tabs{display:flex;width:100%;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;transition:all .2s;border:none;background:transparent;}
+.nav-tab .nt-icon{font-size:20px;}
+.nav-tab .nt-label{font-size:9px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;letter-spacing:.3px;text-transform:uppercase;}
+.nav-tab.active .nt-label{color:var(--accent);}
+.crisis-fab{position:fixed;bottom:88px;right:16px;width:52px;height:52px;border-radius:50%;background:#c0392b;border:none;display:none;align-items:center;justify-content:center;font-size:18px;font-family:'DM Sans',sans-serif;font-weight:700;color:white;cursor:grab;box-shadow:0 4px 16px rgba(192,57,43,.5);z-index:100;animation:fabPulse 2s infinite;user-select:none;touch-action:none;}
+.crisis-fab:active{cursor:grabbing;}
+.crisis-fab.visible{display:none;} /* FAB disabled */
+.crisis-fab.dragging{animation:none;opacity:.9;}
+@keyframes fabPulse{0%,100%{box-shadow:0 4px 16px rgba(192,57,43,.5)}50%{box-shadow:0 4px 24px rgba(192,57,43,.8)}}
+
+/* ── DIARY ── */
+#diary-screen::-webkit-scrollbar{width:3px;}
+#diary-screen::-webkit-scrollbar-thumb{background:var(--border);}
+.tab-scroll{flex:1;overflow-y:auto;padding:16px 16px 80px;display:flex;flex-direction:column;gap:14px;}
+.tab-scroll::-webkit-scrollbar{width:3px;}
+.tab-scroll::-webkit-scrollbar-thumb{background:var(--border);}
+.diary-top{display:flex;align-items:center;justify-content:space-between;}
+.diary-top h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
+.small-add-btn{background:var(--accent);border:none;border-radius:10px;padding:8px 14px;color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;}
+.emotion-picker{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.emotion-picker h3{font-size:13px;color:var(--muted);font-weight:400;}
+.emotion-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.emotion-opt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:12px;border:2px solid var(--border);cursor:pointer;transition:all .2s;background:var(--surface);}
+.emotion-opt:hover,.emotion-opt.sel{border-color:var(--accent);background:rgba(232,149,109,.1);}
+.emotion-opt .ei{font-size:22px;}
+.emotion-opt .el{font-size:10px;color:var(--muted);text-align:center;line-height:1.2;}
+.emotion-opt.sel .el{color:var(--accent);}
+.intensity-row{display:flex;gap:6px;}
+.int-btn{flex:1;padding:9px 2px;border-radius:10px;border:2px solid var(--border);background:var(--surface);cursor:pointer;font-size:11px;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s;text-align:center;}
+.int-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(232,149,109,.1);}
+.diary-entry{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;}
+.de-emoji{font-size:28px;flex-shrink:0;margin-top:2px;}
+.de-info{flex:1;min-width:0;}
+.de-date{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.de-emotion{font-size:14px;font-weight:500;color:var(--text);}
+.de-intensity{font-size:11px;color:var(--muted);margin-top:1px;}
+.de-note{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5;}
+.de-del{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;}
+.de-del:hover{color:#e86d6d;}
+.week-card{background:linear-gradient(135deg,rgba(232,149,109,.12),rgba(196,113,74,.06));border:1px solid rgba(232,149,109,.25);border-radius:16px;padding:16px;}
+.week-card h3{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--accent);margin-bottom:8px;}
+.week-card p{font-size:13px;color:var(--text);line-height:1.6;}
+
+/* ── ACHIEVEMENTS ── */
+#achievements-screen::-webkit-scrollbar{width:3px;}
+.ach-top{display:flex;align-items:center;justify-content:space-between;}
+.ach-top h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
+.achievement-card{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;}
+.ac-icon{font-size:28px;flex-shrink:0;}
+.ac-info{flex:1;}
+.ac-date{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.ac-title{font-size:14px;font-weight:500;color:var(--text);}
+.ac-note{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.ac-del{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;}
+.ac-del:hover{color:#e86d6d;}
+.add-form{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.add-form h3{font-size:13px;color:var(--muted);font-weight:400;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6;}
+.empty-state .es-icon{font-size:40px;margin-bottom:12px;display:block;}
+
+.crisis-chips{display:flex;flex-direction:column;gap:8px;padding:4px 0 8px;}
+.crisis-chip{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);text-align:left;}
+.crisis-chip:hover,.crisis-chip:active{border-color:#e86d6d;background:rgba(232,109,109,.08);}
+.crisis-chip .cc-icon{font-size:20px;flex-shrink:0;}
+.crisis-calm{background:linear-gradient(135deg,rgba(232,109,109,.12),rgba(192,57,43,.06));border:1px solid rgba(232,109,109,.3);border-radius:14px;padding:14px 16px;margin-bottom:4px;}
+.crisis-calm p{font-size:15px;color:var(--text);line-height:1.5;font-weight:400;}
+#crisis-screen{flex-direction:column;}
+.crisis-top{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e86d6d33;background:var(--surface);flex-shrink:0;}
+.crisis-top h2{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:#e86d6d;}
+.crisis-back-btn{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;}
+#crisis-chat{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px;}
+#crisis-input-area{padding:12px 14px 20px;background:var(--surface);border-top:1px solid #e86d6d44;flex-shrink:0;}
+#crisis-wrap{display:flex;align-items:flex-end;gap:10px;background:var(--surface2);border:1.5px solid #e86d6d;border-radius:20px;padding:10px 10px 10px 16px;}
+#crisis-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:300;resize:none;max-height:100px;line-height:1.5;}
+#crisis-input::placeholder{color:var(--muted);}
+#crisis-send{width:36px;height:36px;border-radius:50%;background:#c0392b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#crisis-send svg{width:16px;height:16px;fill:white;}
+#crisis-send:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── LIBRARY ── */
+
+
+#report-screen::-webkit-scrollbar{width:3px;}
+.lib-affiliate-note{font-size:11px;color:var(--muted);text-align:center;padding:8px 0;font-style:italic;}
+.noa-pick{display:inline-flex;align-items:center;gap:4px;background:rgba(232,149,109,.15);border:1px solid rgba(232,149,109,.3);color:var(--accent);font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.report-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.report-top h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
+.report-actions{display:flex;gap:8px;}
+.report-btn{background:var(--accent);border:none;border-radius:10px;padding:8px 14px;color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+.report-btn.sec{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.report-btn.sec:hover{border-color:var(--accent);color:var(--accent);}
+/* ── LIBRARY ── */
+.lib-header{margin-bottom:4px;}
+.lib-header h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:4px;}
+.lib-header p{font-size:13px;color:var(--muted);line-height:1.5;}
+.lib-cat{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.lib-cat::after{content:'';flex:1;height:1px;background:var(--border);}
+.book-card{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;gap:12px;align-items:flex-start;}
+.book-cover{width:52px;height:74px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(232,149,109,.1);border:1px solid rgba(232,149,109,.2);}
+.book-info{flex:1;min-width:0;}
+.book-title{font-size:13.5px;font-weight:500;color:var(--text);line-height:1.3;margin-bottom:3px;}
+.book-author{font-size:12px;color:var(--accent);margin-bottom:6px;}
+.book-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:8px;}
+.book-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.book-tag{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(232,149,109,.08);color:var(--accent);border:1px solid rgba(232,149,109,.15);}
+.book-btn{display:inline-flex;align-items:center;gap:5px;background:var(--accent);border:none;border-radius:10px;padding:7px 14px;color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;}
+.lib-note{font-size:11px;color:var(--muted);text-align:center;font-style:italic;padding:4px 0;}
+
+/* ── REPORT SECTION ── */
+.report-section h3{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:6px;}
+.report-section p{font-size:13.5px;color:var(--text);line-height:1.65;}
+.report-section ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:5px;}
+.report-section ul li{font-size:13px;color:var(--text);line-height:1.55;padding-left:14px;position:relative;}
+.report-section ul li::before{content:'›';position:absolute;left:0;color:var(--muted);}
+.report-generating{text-align:center;padding:50px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.rg-spin{font-size:36px;animation:spin 2s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.report-generating p{font-size:14px;color:var(--muted);line-height:1.6;}
+.report-meta{font-size:11px;color:var(--muted);text-align:center;}
+.report-empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px;line-height:1.7;}
+.report-empty span{font-size:36px;display:block;margin-bottom:12px;}
+.sunday-hint{background:rgba(232,149,109,.08);border:1px solid rgba(232,149,109,.2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.sunday-hint p{font-size:13px;color:var(--text);line-height:1.5;flex:1;}
+.sunday-hint button{flex-shrink:0;background:var(--accent);border:none;border-radius:10px;padding:8px 12px;color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot" style="padding:4px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><defs><radialGradient id="nbg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#f0a882"/><stop offset="100%" stop-color="#c4714a"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#nbg)"/><path d="M50 38 C50 38 36 28 34 35 C32 41 38 46 50 55" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/><path d="M50 38 C50 38 64 28 66 35 C68 41 62 46 50 55" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/><path d="M50 55 L50 65" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" opacity="0.95"/><path d="M38 38 C36 41 37 44 40 44" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M36 45 C35 48 37 51 40 50" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M62 38 C64 41 63 44 60 44" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M64 45 C65 48 63 51 60 50" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M50 38 L50 55" fill="none" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/><path d="M44 70 L47 67 L50 72 L53 63 L56 70" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/></svg></div>
+  <div class="header-text"><h1>Noa</h1><p>Tu coach AACC · Siempre aquí</p></div>
+  <div class="status-dot"></div>
+</header>
+
+<!-- ══ 1. QUIÉN ENTRA ══ -->
+<div id="who-screen" class="screen active" style="overflow-y:auto;padding:24px 18px 30px;gap:16px;">
+  <div class="hero">
+    <div class="av" style="padding:8px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><defs><radialGradient id="nbg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#f0a882"/><stop offset="100%" stop-color="#c4714a"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#nbg)"/><path d="M50 38 C50 38 36 28 34 35 C32 41 38 46 50 55" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/><path d="M50 38 C50 38 64 28 66 35 C68 41 62 46 50 55" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/><path d="M50 55 L50 65" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" opacity="0.95"/><path d="M38 38 C36 41 37 44 40 44" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M36 45 C35 48 37 51 40 50" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M62 38 C64 41 63 44 60 44" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M64 45 C65 48 63 51 60 50" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/><path d="M50 38 L50 55" fill="none" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/><path d="M44 70 L47 67 L50 72 L53 63 L56 70" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/></svg></div>
+    <h2>Hola, soy <em>Noa</em></h2>
+    <p>¿Quién eres tú hoy?</p>
+  </div>
+  <div class="parent-cards" id="who-cards"></div>
+</div>
+
+<!-- PIN MODAL -->
+<div id="pin-modal">
+  <div class="pin-box">
+    <h3 id="pin-title">Introduce tu PIN</h3>
+    <p id="pin-subtitle">Tus conversaciones son privadas</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn del" onclick="pinPress('cancel')">✕</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinPress('del')">⌫</button>
+    </div>
+    <button class="pin-cancel" onclick="closePinModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div id="del-modal">
+  <div class="del-box">
+    <h3>¿Borrar perfil?</h3>
+    <p id="del-msg">Se eliminará el perfil y todas sus conversaciones. Esta acción no se puede deshacer.</p>
+    <div class="del-actions">
+      <button class="del-cancel" onclick="closeDelModal()">Cancelar</button>
+      <button class="del-confirm" id="del-confirm-btn">Borrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 2. ONBOARDING PADRE/MADRE ══ -->
+<div id="parent-onboard" class="screen">
+  <div class="progress-bar"><div class="progress-fill" id="p-progress" style="width:14%"></div></div>
+  <div class="steps-container" id="p-steps">
+
+    <!-- P1: Nombre y foto -->
+    <div class="step active" id="ps-1">
+      <div class="step-num" id="ps1-num">Nuevo perfil</div>
+      <h2>Cuéntame sobre <em>ti</em></h2>
+      <div class="photo-wrap">
+        <div class="photo-circle" id="p-photo-circle" onclick="document.getElementById('p-photo-input').click()">
+          <div class="pi">📷</div><div class="ph">Tu foto<br>(opcional)</div>
+        </div>
+        <div class="photo-lbl">Foto de perfil <span style="color:var(--accent)">(opcional)</span></div>
+        <input type="file" id="p-photo-input" accept="image/*" onchange="handlePPhoto(event)">
+      </div>
+      <div>
+        <label class="form-label">¿Cómo te llamas?</label>
+        <input type="text" class="form-input" id="p-nombre" placeholder="Tu nombre">
+      </div>
+      <div>
+        <label class="form-label">¿Cuál es tu rol?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_rol','Mamá')"><div class="dot"></div>Mamá</div>
+          <div class="opt radio" onclick="selP(this,'p_rol','Papá')"><div class="dot"></div>Papá</div>
+          <div class="opt radio" onclick="selP(this,'p_rol','Otro')"><div class="dot"></div>Otro</div>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">¿Las conversaciones con Noa son privadas para ti?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_privado','Sí, solo yo las veo')"><div class="dot"></div>Sí, privadas</div>
+          <div class="opt radio" onclick="selP(this,'p_privado','No, compartidas con el otro progenitor')"><div class="dot"></div>Compartidas</div>
+        </div>
+      </div>
+      <div id="pin-setup-wrap" style="display:none">
+        <label class="form-label">Crea tu PIN de 4 dígitos <span>(para proteger tus conversaciones)</span></label>
+        <input type="password" inputmode="numeric" maxlength="4" class="form-input" id="p-pin" placeholder="4 dígitos" style="letter-spacing:8px;font-size:20px;text-align:center">
+      </div>
+    </div>
+
+    <!-- P2: Regulación emocional - reacción -->
+    <div class="step" id="ps-2">
+      <div class="step-num">🔴 Bloque 1 · Regulación emocional</div>
+      <h2>Cuando tu hijo se <em>desborda</em>, ¿cómo reaccionas tú?</h2>
+      <p class="sub">Puedes elegir varias — esto es lo más importante para que Noa te ayude bien</p>
+      <div class="opts one">
+        <div class="opt check" onclick="chkP(this,'p_reaccion','Me activo mucho')"><div class="box"></div>Me activo mucho</div>
+        <div class="opt check" onclick="chkP(this,'p_reaccion','Intento controlarlo')"><div class="box"></div>Intento controlarlo</div>
+        <div class="opt check" onclick="chkP(this,'p_reaccion','Me bloqueo')"><div class="box"></div>Me bloqueo</div>
+        <div class="opt check" onclick="chkP(this,'p_reaccion','Me mantengo tranquila/o')"><div class="box"></div>Me mantengo tranquila/o</div>
+      </div>
+    </div>
+
+    <!-- P3: Regulación emocional - dificultad -->
+    <div class="step" id="ps-3">
+      <div class="step-num">🔴 Bloque 1 · Regulación emocional</div>
+      <h2>¿Qué te <em>cuesta más</em> en esos momentos?</h2>
+      <p class="sub">Puedes elegir varias</p>
+      <div class="opts one">
+        <div class="opt check" onclick="chkP(this,'p_cuesta','No gritar')"><div class="box"></div>No gritar</div>
+        <div class="opt check" onclick="chkP(this,'p_cuesta','No enfadarme')"><div class="box"></div>No enfadarme</div>
+        <div class="opt check" onclick="chkP(this,'p_cuesta','Saber qué decir')"><div class="box"></div>Saber qué decir</div>
+        <div class="opt check" onclick="chkP(this,'p_cuesta','Mantener la calma')"><div class="box"></div>Mantener la calma</div>
+      </div>
+    </div>
+
+    <!-- P4: Procesamiento -->
+    <div class="step" id="ps-4">
+      <div class="step-num">🧠 Bloque 2 · Cómo procesas</div>
+      <h2>¿Analizas demasiado las situaciones con tu hijo/a?</h2>
+      <div class="opts">
+        <div class="opt radio" onclick="selP(this,'p_analiza','Sí, mucho — le doy muchas vueltas')"><div class="dot"></div>Sí, mucho</div>
+        <div class="opt radio" onclick="selP(this,'p_analiza','A veces')"><div class="dot"></div>A veces</div>
+        <div class="opt radio" onclick="selP(this,'p_analiza','No')"><div class="dot"></div>No</div>
+      </div>
+      <div style="margin-top:20px">
+        <label class="form-label">¿Te afectan mucho emocionalmente los conflictos con tu hijo/a?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_afecta','Sí, me desbordan')"><div class="dot"></div>Sí, me desbordan</div>
+          <div class="opt radio" onclick="selP(this,'p_afecta','Me afectan pero lo gestiono')"><div class="dot"></div>Me afectan pero lo gestiono</div>
+          <div class="opt radio" onclick="selP(this,'p_afecta','No demasiado')"><div class="dot"></div>No demasiado</div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <label class="form-label">¿Te identificas con las altas capacidades?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_aacc','Sí, diagnóstico oficial')"><div class="dot"></div>Sí</div>
+          <div class="opt radio" onclick="selP(this,'p_aacc','Sospecha, sin diagnóstico')"><div class="dot"></div>Creo que sí</div>
+          <div class="opt radio" onclick="selP(this,'p_aacc','No')"><div class="dot"></div>No</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5: Estilo educativo -->
+    <div class="step" id="ps-5">
+      <div class="step-num">🟡 Bloque 3 · Estilo educativo</div>
+      <h2>Cuando tu hijo/a se comporta mal, tiendes a…</h2>
+      <p class="sub">Puedes elegir varias</p>
+      <div class="opts one">
+        <div class="opt check" onclick="chkP(this,'p_estilo','Explicar')"><div class="box"></div>Explicar</div>
+        <div class="opt check" onclick="chkP(this,'p_estilo','Castigar')"><div class="box"></div>Castigar</div>
+        <div class="opt check" onclick="chkP(this,'p_estilo','Evitar el conflicto')"><div class="box"></div>Evitar el conflicto</div>
+        <div class="opt check" onclick="chkP(this,'p_estilo','Negociar')"><div class="box"></div>Negociar</div>
+      </div>
+      <div style="margin-top:20px">
+        <label class="form-label">¿Te cuesta poner límites?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_limites','Sí, me cuesta mucho')"><div class="dot"></div>Sí</div>
+          <div class="opt radio" onclick="selP(this,'p_limites','A veces')"><div class="dot"></div>A veces</div>
+          <div class="opt radio" onclick="selP(this,'p_limites','No')"><div class="dot"></div>No</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6: Necesidad principal -->
+    <div class="step" id="ps-6">
+      <div class="step-num">🔵 Bloque 4 · Tu necesidad ahora</div>
+      <h2>¿Qué necesitas <em>más</em> ahora mismo?</h2>
+      <p class="sub">Puedes elegir varias — esto ayuda a Noa a darte el apoyo más útil para ti</p>
+      <div class="opts one">
+        <div class="opt check" onclick="chkP(this,'p_necesidad','Saber qué decir en el momento')"><div class="box"></div>Saber qué decir en el momento</div>
+        <div class="opt check" onclick="chkP(this,'p_necesidad','Entender mejor a mi hijo/a')"><div class="box"></div>Entender mejor a mi hijo/a</div>
+        <div class="opt check" onclick="chkP(this,'p_necesidad','Tener más paciencia')"><div class="box"></div>Tener más paciencia</div>
+        <div class="opt check" onclick="chkP(this,'p_necesidad','Sentirme más segura/o')"><div class="box"></div>Sentirme más segura/o</div>
+      </div>
+    </div>
+
+    <!-- P7: AACC desde cuándo (si aplica) -->
+    <div class="step" id="ps-7">
+      <div class="step-num">Paso 7 de 7</div>
+      <h2>Una última cosa sobre <em>ti</em></h2>
+      <div id="p-desde-wrap">
+        <label class="form-label">Si tienes diagnóstico AACC, ¿desde cuándo lo sabes?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_desde','Menos de 1 año')"><div class="dot"></div>Menos de 1 año</div>
+          <div class="opt radio" onclick="selP(this,'p_desde','Entre 1 y 5 años')"><div class="dot"></div>1 a 5 años</div>
+          <div class="opt radio" onclick="selP(this,'p_desde','Más de 5 años')"><div class="dot"></div>Más de 5 años</div>
+          <div class="opt radio" onclick="selP(this,'p_desde','Toda la vida')"><div class="dot"></div>Toda la vida</div>
+          <div class="opt radio" onclick="selP(this,'p_desde','No aplica')"><div class="dot"></div>No aplica</div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <label class="form-label">¿Cómo gestionas tus propias emociones en general?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selP(this,'p_gestion','Me cuesta mucho')"><div class="dot"></div>Me cuesta mucho</div>
+          <div class="opt radio" onclick="selP(this,'p_gestion','A veces, depende del momento')"><div class="dot"></div>A veces</div>
+          <div class="opt radio" onclick="selP(this,'p_gestion','Generalmente bien')"><div class="dot"></div>Generalmente bien</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="step-nav">
+    <button class="btn-back" id="p-btn-back" onclick="pPrev()" style="display:none">← Atrás</button>
+    <button class="btn-next" id="p-btn-next" onclick="pNext()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- ══ 3. SELECTOR DE HIJO ══ -->
+<div id="child-selector" class="screen">
+  <div class="cs-inner">
+    <div class="cs-header">
+      <div class="cs-parent-badge" id="cs-badge" onclick="goWho()">
+        <div class="badge-av" id="cs-badge-av"></div>
+        <span id="cs-badge-name">—</span>
+      </div>
+      <div class="cs-title" style="margin-left:8px">¿Con quién hoy?</div>
+      <button id="cs-back-chat" onclick="backToChat()" style="display:none;margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:10px;padding:6px 12px;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;">← Volver</button>
+    </div>
+    <div id="child-cards"></div>
+    <button class="add-btn" onclick="newChild()">
+      <div class="plus">+</div>Añadir hijo/a
+    </button>
+    <button class="add-btn" onclick="editCurrentParent()" style="margin-top:2px">
+      <div class="plus" style="font-size:16px">✏️</div>Editar mi perfil
+    </button>
+  </div>
+</div>
+
+<!-- ══ 4. ONBOARDING HIJO ══ -->
+<div id="child-onboard" class="screen">
+  <div class="progress-bar"><div class="progress-fill" id="c-progress" style="width:11%"></div></div>
+  <div class="steps-container">
+
+    <div class="step active" id="cs-1">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <button onclick="cPrev()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;line-height:1;">←</button>
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Nuevo perfil</span>
+      </div>
+      <h2>Cuéntame sobre <em>tu hijo/a</em></h2>
+      <div class="noa-bubble" style="margin-top:0">Voy a hacerte unas preguntas para conocerle. Así mis consejos serán mucho más precisos. <strong>Solo unos minutos.</strong></div>
+    </div>
+
+    <div class="step" id="cs-2">
+      <div class="step-num">Paso 1 de 8</div>
+      <h2>Lo <em>básico</em></h2>
+      <div class="photo-wrap">
+        <div class="photo-circle" id="c-photo-circle" onclick="document.getElementById('c-photo-input').click()">
+          <div class="pi">📷</div><div class="ph">Foto del<br>hijo/a</div>
+        </div>
+        <div class="photo-lbl">Foto de perfil <span style="color:var(--accent)">(opcional)</span></div>
+        <input type="file" id="c-photo-input" accept="image/*" onchange="handleCPhoto(event)">
+      </div>
+      <div>
+        <label class="form-label">Nombre <span>(opcional)</span></label>
+        <input type="text" class="form-input" id="c-nombre" placeholder="Ej: Marcos">
+      </div>
+      <div>
+        <label class="form-label">Edad</label>
+        <select class="form-input" id="c-edad">
+          <option value="">Selecciona la edad</option>
+          <option>10 años</option><option>11 años</option><option>12 años</option>
+          <option>13 años</option><option>14 años</option><option>15 años</option>
+          <option>16 años</option><option>17 años</option><option>18 años</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Sexo</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'sexo','Chico')"><div class="dot"></div>Chico</div>
+          <div class="opt radio" onclick="selC(this,'sexo','Chica')"><div class="dot"></div>Chica</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="cs-3">
+      <div class="step-num">Paso 2 de 8</div>
+      <h2>Diagnóstico <em>AACC</em></h2>
+      <div class="opts">
+        <div class="opt radio" onclick="selC(this,'diagnostico','Diagnóstico oficial')"><div class="dot"></div>Diagnóstico oficial</div>
+        <div class="opt radio" onclick="selC(this,'diagnostico','Solo sospecha')"><div class="dot"></div>Solo sospecha</div>
+        <div class="opt radio" onclick="selC(this,'diagnostico','En proceso')"><div class="dot"></div>En proceso</div>
+        <div class="opt radio" onclick="selC(this,'diagnostico','No lo sé')"><div class="dot"></div>No lo sé</div>
+      </div>
+      <div id="talentos-wrap" style="display:none">
+        <label class="form-label">¿Cuáles son sus principales talentos? <span>(opcional)</span></label>
+        <textarea class="form-input" id="c-talentos" placeholder="Ej: matemáticas, música, ajedrez…"></textarea>
+      </div>
+    </div>
+
+    <div class="step" id="cs-4">
+      <div class="step-num">Paso 3 de 8</div>
+      <h2>¿Otra <em>excepcionalidad</em>?</h2>
+      <p class="sub">Además de las AACC — puedes elegir varios</p>
+      <div class="opts one">
+        <div class="opt check" onclick="chkC(this,'doble','TDAH')"><div class="box"></div>TDAH</div>
+        <div class="opt check" onclick="chkC(this,'doble','Autismo / TEA')"><div class="box"></div>Autismo / TEA</div>
+        <div class="opt check" onclick="chkC(this,'doble','Dislexia u otras dificultades de aprendizaje')"><div class="box"></div>Dislexia u otras dificultades de aprendizaje</div>
+        <div class="opt check" onclick="chkC(this,'doble','Discalculia')"><div class="box"></div>Discalculia</div>
+        <div class="opt check" onclick="chkC(this,'doble','Ninguna conocida')"><div class="box"></div>Ninguna conocida</div>
+      </div>
+    </div>
+
+    <div class="step" id="cs-5">
+      <div class="step-num">Paso 4 de 8</div>
+      <h2>Intensidad <em>emocional</em></h2>
+      <p class="sub">Puedes elegir varios</p>
+      <div class="opts one">
+        <div class="opt check" onclick="chkC(this,'intensidad','Explosiones de ira / rabietas')"><div class="box"></div>Explosiones de ira / rabietas</div>
+        <div class="opt check" onclick="chkC(this,'intensidad','Lloros frecuentes e intensos')"><div class="box"></div>Lloros frecuentes e intensos</div>
+        <div class="opt check" onclick="chkC(this,'intensidad','Se frustra fácilmente')"><div class="box"></div>Se frustra fácilmente</div>
+        <div class="opt check" onclick="chkC(this,'intensidad','Perfeccionismo extremo')"><div class="box"></div>Perfeccionismo extremo</div>
+        <div class="opt check" onclick="chkC(this,'intensidad','Se cierra y no habla')"><div class="box"></div>Se cierra y no habla</div>
+        <div class="opt check" onclick="chkC(this,'intensidad','Insulta o agrede verbalmente')"><div class="box"></div>Insulta o agrede verbalmente</div>
+        <div class="opt check" onclick="chkC(this,'intensidad','Ansiedad y preocupación constante')"><div class="box"></div>Ansiedad y preocupación constante</div>
+      </div>
+    </div>
+
+    <div class="step" id="cs-6">
+      <div class="step-num">Paso 5 de 8</div>
+      <h2>Situación <em>familiar</em></h2>
+      <div>
+        <label class="form-label">¿Cuál es vuestra situación?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'familia','Padres juntos')"><div class="dot"></div>Padres juntos</div>
+          <div class="opt radio" onclick="selC(this,'familia','Padres separados')"><div class="dot"></div>Padres separados</div>
+          <div class="opt radio" onclick="selC(this,'familia','Familia monoparental')"><div class="dot"></div>Monoparental</div>
+          <div class="opt radio" onclick="selC(this,'familia','Ha perdido a un progenitor')"><div class="dot"></div>Ha perdido un progenitor</div>
+        </div>
+      </div>
+      <div id="sep-wrap" style="display:none">
+        <label class="form-label">¿Cómo lleva la separación?</label>
+        <div class="opts one">
+          <div class="opt check" onclick="chkC(this,'separacion','Lo lleva bien')"><div class="box"></div>Lo lleva bien</div>
+          <div class="opt check" onclick="chkC(this,'separacion','Le cuesta, hay tensión entre los padres')"><div class="box"></div>Le cuesta, hay tensión</div>
+          <div class="opt check" onclick="chkC(this,'separacion','Lo usa para manipular')"><div class="box"></div>Lo usa para manipular</div>
+          <div class="opt check" onclick="chkC(this,'separacion','Le genera mucha ansiedad')"><div class="box"></div>Le genera ansiedad</div>
+        </div>
+      </div>
+      <div id="perdida-wrap" style="display:none">
+        <label class="form-label">¿A quién perdió?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'perdida','A su padre')"><div class="dot"></div>A su padre</div>
+          <div class="opt radio" onclick="selC(this,'perdida','A su madre')"><div class="dot"></div>A su madre</div>
+          <div class="opt radio" onclick="selC(this,'perdida','A ambos')"><div class="dot"></div>A ambos</div>
+        </div>
+        <label class="form-label" style="margin-top:12px">¿Cuándo?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'cuando_perdida','Hace menos de 1 año')"><div class="dot"></div>Menos de 1 año</div>
+          <div class="opt radio" onclick="selC(this,'cuando_perdida','Hace 1-3 años')"><div class="dot"></div>1-3 años</div>
+          <div class="opt radio" onclick="selC(this,'cuando_perdida','Hace más de 3 años')"><div class="dot"></div>Más de 3 años</div>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">¿Tiene hermanos?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'hermanos','No, es hijo único')"><div class="dot"></div>Hijo único</div>
+          <div class="opt radio" onclick="selC(this,'hermanos','Sí tiene hermanos')"><div class="dot"></div>Sí tiene hermanos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="cs-7">
+      <div class="step-num">Paso 6 de 8</div>
+      <h2>Entorno <em>escolar</em></h2>
+      <div>
+        <label class="form-label">¿El colegio conoce las AACC?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'colegio','Sí y lo atienden bien')"><div class="dot"></div>Sí, bien atendido</div>
+          <div class="opt radio" onclick="selC(this,'colegio','Sí pero sin apoyo real')"><div class="dot"></div>Sí pero sin apoyo</div>
+          <div class="opt radio" onclick="selC(this,'colegio','No lo saben')"><div class="dot"></div>No lo saben</div>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">¿Está en tratamiento con psicólogo?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'psicologo','Sí')"><div class="dot"></div>Sí</div>
+          <div class="opt radio" onclick="selC(this,'psicologo','No')"><div class="dot"></div>No</div>
+          <div class="opt radio" onclick="selC(this,'psicologo','En lista de espera')"><div class="dot"></div>En lista de espera</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="cs-8">
+      <div class="step-num">Paso 7 de 8</div>
+      <h2>Relaciones <em>sociales</em></h2>
+      <div>
+        <label class="form-label">¿Cómo se relaciona con chicos de su edad?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'social','Le cuesta mucho')"><div class="dot"></div>Le cuesta mucho</div>
+          <div class="opt radio" onclick="selC(this,'social','Pocos amigos pero los mantiene')"><div class="dot"></div>Pocos amigos</div>
+          <div class="opt radio" onclick="selC(this,'social','Se relaciona bien')"><div class="dot"></div>Se relaciona bien</div>
+          <div class="opt radio" onclick="selC(this,'social','Prefiere estar solo/a')"><div class="dot"></div>Prefiere estar solo/a</div>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">¿Ha sufrido bullying?</label>
+        <div class="opts">
+          <div class="opt radio" onclick="selC(this,'bullying','Sí, actualmente')"><div class="dot"></div>Sí, actualmente</div>
+          <div class="opt radio" onclick="selC(this,'bullying','Sí, en el pasado')"><div class="dot"></div>Sí, en el pasado</div>
+          <div class="opt radio" onclick="selC(this,'bullying','No')"><div class="dot"></div>No</div>
+          <div class="opt radio" onclick="selC(this,'bullying','No lo sé')"><div class="dot"></div>No lo sé</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="cs-9">
+      <div class="step-num">Paso 8 de 8</div>
+      <h2>¿Algo más que deba <em>saber</em>?</h2>
+      <p class="sub">Opcional pero muy útil</p>
+      <textarea class="form-input" id="c-extra" placeholder="Cualquier detalle que creas importante…"></textarea>
+      <div>
+        <label class="form-label">Dibujos, escritos o documentos de tu hijo/a <span>(opcional)</span></label>
+        <p class="sub" style="margin-bottom:10px">Noa los tendrá en cuenta siempre al darte consejos</p>
+        <div class="profile-files-section" id="profile-files-list"></div>
+        <button class="add-file-btn" onclick="document.getElementById('profile-file-input').click()">
+          <span style="font-size:20px">+</span> Añadir dibujo, foto o PDF
+        </button>
+        <input type="file" id="profile-file-input" accept="image/*,.pdf" style="display:none" onchange="handleProfileFile(event)">
+      </div>
+    </div>
+
+  </div>
+  <div class="step-nav">
+    <button class="btn-back" id="c-btn-back" onclick="cPrev()" style="display:none">← Atrás</button>
+    <button class="btn-next" id="c-btn-next" onclick="cNext()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- ══ 5. CHAT ══ -->
+<div id="chat-screen" class="screen">
+  <div id="chat-pill">
+    <div class="pill-av" id="pill-child-av"></div>
+    <div style="flex:1;min-width:0">
+      <div id="pill-name">—</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div id="pill-meta" style="font-size:11px;color:var(--muted)">—</div>
+        <span class="pill-sep">·</span>
+        <div id="pill-parent" style="font-size:11px;color:var(--muted)">—</div>
+      </div>
+    </div>
+    <div class="pill-change" onclick="resetChat()" style="margin-right:6px">← inicio</div>
+    <div class="pill-change" onclick="openSelectorFromChat()">cambiar</div>
+  </div>
+
+  <!-- PANTALLA PRINCIPAL CON DOS SECCIONES -->
+  <div id="primary-chips">
+    <div class="home-title">¿Qué está pasando con <span id="chip-child-name">tu hijo/a</span>?</div>
+
+    <!-- SECCIÓN URGENTE -->
+    <div class="home-section urgent">
+      <div class="home-section-badge urgent-badge">⚡ ESTÁ PASANDO AHORA</div>
+      <div class="home-section-title">Necesitas ayuda inmediata</div>
+      <div class="home-section-sub">Respuesta directa para este momento</div>
+      <div class="urgent-grid">
+        <button class="urgent-chip" onclick="usePrimaryChip(this,'💢 Me está insultando')"><span>😡</span>Me está insultando</button>
+        <button class="urgent-chip" onclick="usePrimaryChip(this,'😤 Explosión emocional')"><span>🤯</span>Explosión emocional</button>
+        <button class="urgent-chip" onclick="usePrimaryChip(this,'😰 Crisis de ansiedad ahora mismo')"><span>😰</span>Crisis de ansiedad ahora</button>
+        <button class="urgent-chip" onclick="usePrimaryChip(this,'🧊 Está bloqueado y no responde')"><span>🧊</span>Bloqueado / no responde</button>
+        <button class="urgent-chip" onclick="usePrimaryChip(this,'⚡ Me desafía y me contesta mal')"><span>⚡</span>Me desafía / contesta mal</button>
+        <button class="urgent-chip" onclick="usePrimaryChip(this,'🚫 Se niega a hacer algo')"><span>🚫</span>Se niega a hacer algo</button>
+        <button class="urgent-chip urgent-full" onclick="usePrimaryChip(this,'😢 Está muy desbordado')"><span>😢</span>Está muy desbordado</button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN REFLEXIVA -->
+    <div class="home-section calm">
+      <div class="home-section-title calm-title">💛 Quiero entender o ayudar mejor</div>
+      <div class="home-section-sub">Orientación y reflexión</div>
+      <div class="calm-grid">
+        <button class="calm-chip" onclick="usePrimaryChip(this,'📚 No quiere estudiar')"><span>📚</span>No quiere estudiar</button>
+        <button class="calm-chip" onclick="usePrimaryChip(this,'😔 Se siente solo')"><span>😔</span>Se siente solo</button>
+        <button class="calm-chip" onclick="usePrimaryChip(this,'🏫 Rechazo al colegio')"><span>🏫</span>Rechazo al colegio</button>
+        <button class="calm-chip" onclick="usePrimaryChip(this,'😰 Tiene ansiedad de forma general')"><span>😟</span>Tiene ansiedad</button>
+        <button class="calm-chip" onclick="openHowToTalk()"><span>💬</span>No sé cómo hablarle de…</button>
+        <button class="calm-chip" onclick="focusChatInput('other')" style="border-color:rgba(232,149,109,.5);background:rgba(232,149,109,.1);color:var(--accent);"><span>✏️</span>Cuéntaselo<br>a Noa</button>
+      </div>
+    </div>
+
+    <!-- MENSAJE DE APOYO -->
+    <div class="home-support">
+      <span>💛</span>
+      <div>
+        <div class="hs-title">Recuerda: No estás sola en esto</div>
+        <div class="hs-sub">Cada situación es difícil, pero con las herramientas adecuadas puedes manejarlo mejor 💛</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat"></div>
+
+  <div id="input-area">
+    <div id="file-preview">
+      <div id="fp-thumb"></div>
+      <div class="fp-info">
+        <div class="fp-name" id="fp-name">—</div>
+        <div class="fp-type" id="fp-type">—</div>
+      </div>
+      <button class="fp-remove" onclick="clearAttachment()">✕</button>
+    </div>
+    <div id="input-wrap">
+      <button class="attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Adjuntar archivo">📎</button>
+      <input type="file" id="chat-file-input" accept="image/*,.pdf" style="display:none" onchange="handleChatFile(event)">
+      <textarea id="user-input" rows="1" placeholder="Cuéntame qué está pasando…" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button id="send-btn" onclick="sendMessage()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEKLY REPORT ══ -->
+<div id="report-screen" class="screen">
+  <div class="tab-scroll">
+  <div class="report-top">
+    <h2>📋 Informes</h2>
+    <button class="report-btn" onclick="generateReport()">✨ Nuevo</button>
+  </div>
+  <div id="sunday-hint-wrap"></div>
+  <div id="report-list"></div>
+  <div id="report-content"></div>
+  </div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<div id="bottom-nav">
+  <div class="nav-tabs" style="overflow-x:auto;scrollbar-width:none;">
+    <button class="nav-tab active" id="nav-chat" onclick="switchTab('chat')">
+      <span class="nt-icon">💬</span><span class="nt-label">Chat</span>
+    </button>
+    <button class="nav-tab" id="nav-diary" onclick="switchTab('diary')">
+      <span class="nt-icon">📓</span><span class="nt-label">Diario</span>
+    </button>
+    <button class="nav-tab" id="nav-report" onclick="switchTab('report')">
+      <span class="nt-icon">📋</span><span class="nt-label">Informe</span>
+    </button>
+    <button class="nav-tab" id="nav-ach" onclick="switchTab('achievements')">
+      <span class="nt-icon">⭐</span><span class="nt-label">Logros</span>
+    </button>
+    <button class="nav-tab" id="nav-library" onclick="switchTab('library')">
+      <span class="nt-icon">📚</span><span class="nt-label">Librería</span>
+    </button>
+  </div>
+</div>
+
+
+<!-- CRISIS FAB (oculto, necesario para el JS) -->
+<button class="crisis-fab" id="crisis-fab" style="display:none!important" title="Modo crisis">SOS</button>
+<div id="library-screen" class="screen">
+  <div class="tab-scroll">
+    <div class="lib-header">
+      <h2>📚 Librería Noa</h2>
+      <p>Libros seleccionados para entender y acompañar mejor a tu hijo/a AACC.</p>
+    </div>
+    <div class="lib-note">* Los enlaces te llevan a Amazon. Pronto activaremos afiliados para apoyar el proyecto.</div>
+
+    <div class="lib-cat">🧠 Entender las AACC</div>
+
+    <div class="book-card">
+      <div class="book-cover">📕</div>
+      <div class="book-info">
+        <div class="book-title">Emociones. La cara oculta de las altas capacidades</div>
+        <div class="book-author">Susana Arroyo Andreu</div>
+        <div class="book-desc">Por qué los AACC sienten tan intensamente y cómo acompañarles emocionalmente. Esencial para entender las explosiones y el perfeccionismo.</div>
+        <div class="book-tags"><span class="book-tag">Emociones</span><span class="book-tag">Intensidad</span><span class="book-tag">Español</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=Emociones+cara+oculta+altas+capacidades+Arroyo&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📗</div>
+      <div class="book-info">
+        <div class="book-title">El don de la sensibilidad</div>
+        <div class="book-author">Elaine N. Aron</div>
+        <div class="book-desc">Referencia mundial sobre las Personas Altamente Sensibles. Clave para entender la hipersensibilidad sensorial y emocional de muchos AACC.</div>
+        <div class="book-tags"><span class="book-tag">Sensibilidad</span><span class="book-tag">PAS</span><span class="book-tag">Clásico</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=El+don+de+la+sensibilidad+Elaine+Aron&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📘</div>
+      <div class="book-info">
+        <div class="book-title">Niños superdotados, brillantes, creativos e intensos</div>
+        <div class="book-author">Sharon Lind, Barbara Daniels & Michael Piechowski</div>
+        <div class="book-desc">Guía práctica sobre las sobreexcitabilidades de Dabrowski aplicadas al día a día del niño AACC.</div>
+        <div class="book-tags"><span class="book-tag">Sobreexcitabilidades</span><span class="book-tag">Dabrowski</span><span class="book-tag">Práctico</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=Ni%C3%B1os+superdotados+brillantes+creativos+intensos&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📙</div>
+      <div class="book-info">
+        <div class="book-title">El cerebro del niño</div>
+        <div class="book-author">Daniel J. Siegel & Tina Payne Bryson</div>
+        <div class="book-desc">Cómo funciona el cerebro en desarrollo y cómo ayudar a los niños a gestionar sus emociones. Muy útil para entender las reacciones intensas.</div>
+        <div class="book-tags"><span class="book-tag">Neurociencia</span><span class="book-tag">Emociones</span><span class="book-tag">Crianza</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=El+cerebro+del+ni%C3%B1o+Siegel+Bryson&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="lib-cat">💛 Para el padre/madre AACC</div>
+
+    <div class="book-card">
+      <div class="book-cover">📒</div>
+      <div class="book-info">
+        <div class="book-title">¿Demasiado inteligente para ser feliz?</div>
+        <div class="book-author">Jeanne Siaud-Facchin</div>
+        <div class="book-desc">Las dificultades del adulto superdotado en la vida cotidiana. Imprescindible si tú también eres AACC.</div>
+        <div class="book-tags"><span class="book-tag">Adulto AACC</span><span class="book-tag">Autoconocimiento</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=Demasiado+inteligente+para+ser+feliz+Siaud-Facchin&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📔</div>
+      <div class="book-info">
+        <div class="book-title">Padres brillantes, maestros fascinantes</div>
+        <div class="book-author">Augusto Cury</div>
+        <div class="book-desc">Cómo educar con inteligencia emocional y crear vínculos sólidos con hijos que piensan diferente.</div>
+        <div class="book-tags"><span class="book-tag">Crianza</span><span class="book-tag">Vínculo</span><span class="book-tag">Práctico</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=Padres+brillantes+maestros+fascinantes+Cury&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="lib-cat">🏫 Colegio y entorno social</div>
+
+    <div class="book-card">
+      <div class="book-cover">📓</div>
+      <div class="book-info">
+        <div class="book-title">Altas capacidades en niños y niñas</div>
+        <div class="book-author">Carmen Sanz Chacón</div>
+        <div class="book-desc">Guía práctica para detectar, entender y apoyar las AACC en el entorno escolar y familiar.</div>
+        <div class="book-tags"><span class="book-tag">Escuela</span><span class="book-tag">Detección</span><span class="book-tag">Español</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=Altas+capacidades+ni%C3%B1os+ni%C3%B1as+Sanz+Chac%C3%B3n&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📑</div>
+      <div class="book-info">
+        <div class="book-title">La educación de los niños superdotados</div>
+        <div class="book-author">Sylvia Rimm</div>
+        <div class="book-desc">Estrategias para evitar el subrendimiento y el fracaso escolar en niños con altas capacidades.</div>
+        <div class="book-tags"><span class="book-tag">Escuela</span><span class="book-tag">Subrendimiento</span><span class="book-tag">Estrategias</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=educaci%C3%B3n+ni%C3%B1os+superdotados+Rimm&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📖</div>
+      <div class="book-info">
+        <div class="book-title">Mentes diferentes, aprendizajes diferentes</div>
+        <div class="book-author">Mel Levine</div>
+        <div class="book-desc">Cómo cada cerebro aprende de forma distinta. Especialmente útil en casos de doble excepcionalidad.</div>
+        <div class="book-tags"><span class="book-tag">Aprendizaje</span><span class="book-tag">2e</span><span class="book-tag">Educación</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=Mentes+diferentes+aprendizajes+diferentes+Levine&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="book-cover">📜</div>
+      <div class="book-info">
+        <div class="book-title">El niño que no encajaba</div>
+        <div class="book-author">Olga Carmona</div>
+        <div class="book-desc">Para niños AACC que se sienten diferentes. Ideal para leer juntos y abrir conversaciones sobre identidad y pertenencia.</div>
+        <div class="book-tags"><span class="book-tag">Identidad</span><span class="book-tag">Autoestima</span><span class="book-tag">Lectura compartida</span></div>
+        <a class="book-btn" href="https://www.amazon.es/s?k=El+ni%C3%B1o+que+no+encajaba+Carmona+AACC&tag=TU_CODIGO" target="_blank">Ver en Amazon →</a>
+      </div>
+    </div>
+
+    <div class="lib-note">Enlace de afiliado · Tu compra apoya el proyecto Noa sin coste adicional para ti.</div>
+  </div>
+</div>
+
+<!-- ══ CRISIS ══ -->
+<div id="crisis-screen" class="screen">
+  <div class="crisis-top">
+    <button class="crisis-back-btn" onclick="closeCrisis()">←</button>
+    <h2>🆘 Modo crisis</h2>
+  </div>
+  <div id="crisis-chat"></div>
+  <div id="crisis-input-area">
+    <div id="crisis-wrap">
+      <textarea id="crisis-input" rows="1" placeholder="Dime qué está pasando ahora mismo…" oninput="autoResize(this)" onkeydown="handleCrisisKey(event)"></textarea>
+      <button id="crisis-send" onclick="sendCrisis()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DIARY ══ -->
+<div id="diary-screen" class="screen">
+  <div class="tab-scroll">
+  <div class="diary-top">
+    <h2>📓 Diario emocional</h2>
+    <button class="small-add-btn" onclick="toggleDiaryForm()">+ Añadir</button>
+  </div>
+  <div id="diary-form-wrap" style="display:none">
+    <div class="emotion-picker">
+      <h3>¿Cómo ha estado hoy?</h3>
+      <div class="emotion-grid">
+        <div class="emotion-opt" onclick="selEmotion(this,'😊','Contento')"><div class="ei">😊</div><div class="el">Contento</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'😢','Triste')"><div class="ei">😢</div><div class="el">Triste</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'😤','Enfadado')"><div class="ei">😤</div><div class="el">Enfadado</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'😰','Ansioso')"><div class="ei">😰</div><div class="el">Ansioso</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'😔','Frustrado')"><div class="ei">😔</div><div class="el">Frustrado</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'🤩','Eufórico')"><div class="ei">🤩</div><div class="el">Eufórico</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'😶','Bloqueado')"><div class="ei">😶</div><div class="el">Bloqueado</div></div>
+        <div class="emotion-opt" onclick="selEmotion(this,'😌','Tranquilo')"><div class="ei">😌</div><div class="el">Tranquilo</div></div>
+      </div>
+      <h3>Intensidad</h3>
+      <div class="intensity-row">
+        <button class="int-btn" onclick="selIntensity(this,1)">1<br>Leve</button>
+        <button class="int-btn" onclick="selIntensity(this,2)">2</button>
+        <button class="int-btn" onclick="selIntensity(this,3)">3<br>Medio</button>
+        <button class="int-btn" onclick="selIntensity(this,4)">4</button>
+        <button class="int-btn" onclick="selIntensity(this,5)">5<br>Intenso</button>
+      </div>
+      <h3>¿Qué pasó? <span style="color:var(--accent)">(opcional)</span></h3>
+      <textarea class="form-input" id="diary-note" placeholder="Breve descripción de la situación…" style="min-height:70px;font-size:14px"></textarea>
+
+      <h3>🎨 ¿Tiene un dibujo del día? <span style="color:var(--accent)">(opcional)</span></h3>
+      <p class="sub" style="margin-bottom:8px">Noa analizará el dibujo y añadirá sus observaciones a la entrada</p>
+      <div id="diary-drawing-preview" style="display:none;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;">
+          <img id="diary-drawing-thumb" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">
+          <div style="flex:1;font-size:13px;color:var(--text)" id="diary-drawing-name">—</div>
+          <button onclick="clearDiaryDrawing()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;">✕</button>
+        </div>
+      </div>
+      <button class="add-file-btn" onclick="document.getElementById('diary-drawing-input').click()">
+        <span style="font-size:18px">🎨</span> Adjuntar dibujo o foto
+      </button>
+      <input type="file" id="diary-drawing-input" accept="image/*" style="display:none" onchange="handleDiaryDrawing(event)">
+
+      <button class="btn-primary" onclick="saveDiaryEntry()">Guardar entrada</button>
+    </div>
+  </div>
+  <div id="week-summary-wrap"></div>
+  <div id="diary-entries"></div>
+  </div>
+</div>
+
+<!-- ══ ACHIEVEMENTS ══ -->
+<div id="achievements-screen" class="screen">
+  <div class="tab-scroll">
+  <div class="ach-top">
+    <h2>⭐ Logros y avances</h2>
+    <button class="small-add-btn" onclick="toggleAchForm()">+ Añadir</button>
+  </div>
+  <div id="ach-form-wrap" style="display:none">
+    <div class="add-form">
+      <h3>Registra un momento positivo</h3>
+      <div class="emotion-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="emotion-opt" onclick="selAchIcon(this,'🌟')"><div class="ei">🌟</div><div class="el">Logro</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'💪')"><div class="ei">💪</div><div class="el">Fuerza</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'🤝')"><div class="ei">🤝</div><div class="el">Social</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'📚')"><div class="ei">📚</div><div class="el">Escolar</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'🎨')"><div class="ei">🎨</div><div class="el">Creativo</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'😌')"><div class="ei">😌</div><div class="el">Calma</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'💬')"><div class="ei">💬</div><div class="el">Comunicó</div></div>
+        <div class="emotion-opt" onclick="selAchIcon(this,'❤️')"><div class="ei">❤️</div><div class="el">Conexión</div></div>
+      </div>
+      <input type="text" class="form-input" id="ach-title" placeholder="¿Qué pasó? Ej: Gestionó el enfado sin insultar">
+      <textarea class="form-input" id="ach-note" placeholder="Cuéntame más… (opcional)" style="min-height:60px;font-size:14px"></textarea>
+      <button class="btn-primary" onclick="saveAchievement()">Guardar logro</button>
+    </div>
+  </div>
+  <div id="ach-list"></div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══
+let parents   = JSON.parse(localStorage.getItem('noa_parents') || '[]');
+let children  = JSON.parse(localStorage.getItem('noa_children') || '[]');
+
+let activeParentIdx = null;
+let activeChildIdx  = null;
+let activeParent    = null;
+let activeChild     = null;
+
+// conversations stored per parent (if private) or shared key
+let conversations = JSON.parse(localStorage.getItem('noa_convos') || '{}');
+
+let pStep = 1, cStep = 1;
+const P_STEPS = 7, C_STEPS = 9;
+
+let pRadio = {}, pCheck = {}, pPhoto = null, editingParentIdx = null;
+let cRadio = {}, cCheck = {}, cPhoto = null, editingChildIdx = null;
+
+const chatEl   = document.getElementById('chat');
+const inputEl  = document.getElementById('user-input');
+const sendBtn  = document.getElementById('send-btn');
+let isLoading  = false;
+
+// ══ SCREENS ══
+function showScreen(id) {
+  // Hide all screens
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
+  // Show target
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+}
+
+// ══ WHO SCREEN ══
+function renderWho() {
+  const cards = document.getElementById('who-cards');
+  cards.innerHTML = '';
+  parents.forEach((p, i) => {
+    const c = document.createElement('div');
+    c.className = 'parent-card';
+    const av = p.photo ? `<img src="${p.photo}">` : (p.rol === 'Mamá' ? '👩' : p.rol === 'Papá' ? '👨' : '🧑');
+    const lockIcon = p.pin ? '🔒' : '';
+    c.innerHTML = `
+      <div class="pc-av">${av}</div>
+      <div class="pc-info">
+        <div class="pc-name">${p.nombre||p.rol} ${lockIcon}</div>
+        <div class="pc-role">${p.rol}</div>
+      </div>
+      <button class="pc-del" onclick="event.stopPropagation();confirmDelete('parent',${i})">🗑️</button>
+      <div class="pc-arrow">›</div>`;
+    c.onclick = () => tryEnterAsParent(i);
+    cards.appendChild(c);
+  });
+  const add = document.createElement('div');
+  add.className = 'parent-card new-parent';
+  add.innerHTML = `<div class="pc-av" style="background:transparent;border:1.5px dashed currentColor;font-size:18px">+</div><div class="pc-info"><div class="pc-name">Añadir perfil</div><div class="pc-role">Mamá, Papá u otro</div></div>`;
+  add.onclick = () => startParentOnboard(null);
+  cards.appendChild(add);
+}
+
+function tryEnterAsParent(i) {
+  const p = parents[i];
+  if (p.pin) {
+    openPinModal(i, 'verify');
+  } else {
+    enterAsParent(i);
+  }
+}
+
+// ── PIN LOGIC ──
+let pinMode = null; // 'verify' | 'set'
+let pinTargetIdx = null;
+let pinBuffer = '';
+
+function openPinModal(idx, mode) {
+  pinMode = mode;
+  pinTargetIdx = idx;
+  pinBuffer = '';
+  const p = parents[idx];
+  document.getElementById('pin-title').textContent = mode === 'verify' ? `Hola, ${p.nombre||p.rol}` : 'Crea tu PIN';
+  document.getElementById('pin-subtitle').textContent = mode === 'verify' ? 'Introduce tu PIN para continuar' : 'Elige 4 dígitos para proteger tus conversaciones';
+  document.getElementById('pin-error').textContent = '';
+  updatePinDots();
+  document.getElementById('pin-modal').classList.add('open');
+}
+
+function closePinModal() {
+  document.getElementById('pin-modal').classList.remove('open');
+  pinBuffer = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('pd' + i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function pinPress(val) {
+  if (val === 'cancel') { closePinModal(); return; }
+  if (val === 'del') { pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); return; }
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += val;
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(() => {
+      if (pinMode === 'verify') {
+        if (pinBuffer === parents[pinTargetIdx].pin) {
+          closePinModal();
+          enterAsParent(pinTargetIdx);
+        } else {
+          document.getElementById('pin-error').textContent = 'PIN incorrecto. Inténtalo de nuevo.';
+          pinBuffer = '';
+          updatePinDots();
+        }
+      }
+    }, 150);
+  }
+}
+
+// ── DELETE LOGIC ──
+let deleteType = null, deleteIdx = null;
+
+function confirmDelete(type, idx) {
+  deleteType = type; deleteIdx = idx;
+  const name = type === 'parent' ? (parents[idx].nombre || parents[idx].rol) : children[idx].nombre;
+  document.getElementById('del-msg').textContent = `Se eliminará el perfil de "${name}" y todas sus conversaciones. Esta acción no se puede deshacer.`;
+  document.getElementById('del-confirm-btn').onclick = executeDelete;
+  document.getElementById('del-modal').classList.add('open');
+}
+
+function closeDelModal() { document.getElementById('del-modal').classList.remove('open'); }
+
+function executeDelete() {
+  closeDelModal();
+  if (deleteType === 'parent') {
+    // Remove conversations for this parent
+    Object.keys(conversations).forEach(k => { if (k.startsWith(`p${deleteIdx}_`)) delete conversations[k]; });
+    parents.splice(deleteIdx, 1);
+    localStorage.setItem('noa_parents', JSON.stringify(parents));
+    localStorage.setItem('noa_convos', JSON.stringify(conversations));
+    renderWho();
+  } else {
+    // Remove child and its conversations
+    Object.keys(conversations).forEach(k => {
+      if (k.endsWith(`_c${deleteIdx}`) || k === `shared_${deleteIdx}`) delete conversations[k];
+    });
+    children.splice(deleteIdx, 1);
+    localStorage.setItem('noa_children', JSON.stringify(children));
+    localStorage.setItem('noa_convos', JSON.stringify(conversations));
+    renderChildSelector();
+  }
+}
+
+function enterAsParent(i) {
+  activeParentIdx = i;
+  activeParent = parents[i];
+  renderChildSelector();
+  showScreen('child-selector');
+  if (children.length === 0) newChild();
+}
+
+function goWho() { 
+  document.getElementById('cs-back-chat').style.display = 'none';
+  renderWho(); 
+  showScreen('who-screen'); 
+}
+
+function openSelectorFromChat() {
+  hideBottomNav();
+  renderChildSelector();
+  showScreen('child-selector');
+  document.getElementById('cs-back-chat').style.display = 'block';
+}
+
+function backToChat() {
+  document.getElementById('cs-back-chat').style.display = 'none';
+  showScreen('chat-screen');
+  showBottomNav();
+  switchTab('chat');
+}
+
+// ══ PARENT ONBOARDING ══
+function startParentOnboard(idx) {
+  editingParentIdx = idx;
+  pRadio = {}; pCheck = {}; pPhoto = null; pStep = 1;
+  document.querySelectorAll('#parent-onboard .opt.selected').forEach(e => e.classList.remove('selected'));
+  document.getElementById('p-nombre').value = '';
+  document.getElementById('p-desde-wrap').style.display = 'block';
+  document.getElementById('pin-setup-wrap').style.display = 'none';
+  document.getElementById('p-pin').value = '';
+  resetPhotoCircle('p-photo-circle', 'p-photo-input');
+
+  if (idx !== null) {
+    const p = parents[idx];
+    document.getElementById('p-nombre').value = p.nombre || '';
+    pPhoto = p.photo || null;
+    if (pPhoto) setPhotoCircle('p-photo-circle', pPhoto);
+
+    // Restore radio fields
+    const rGroups = ['p_rol','p_privado','p_aacc','p_desde','p_gestion','p_analiza','p_afecta','p_limites'];
+    rGroups.forEach(g => {
+      if (p[g]) {
+        pRadio[g] = p[g];
+        document.querySelectorAll(`[onclick*="selP(this,'${g}'"]`).forEach(el => {
+          if (el.getAttribute('onclick').includes(`'${p[g]}'`)) el.classList.add('selected');
+        });
+      }
+    });
+
+    // Restore checkbox fields
+    const cGroups = ['p_reaccion','p_cuesta','p_estilo','p_necesidad','p_crisis'];
+    cGroups.forEach(g => {
+      const val = p[g === 'p_crisis' ? 'p_crisis' : g];
+      if (val && val !== 'no especificado') {
+        const vals = val.split(', ');
+        pCheck[g] = vals;
+        document.querySelectorAll(`[onclick*="chkP(this,'${g}'"]`).forEach(el => {
+          const v = el.getAttribute('onclick').match(/'([^']+)'\)$/)?.[1];
+          if (v && vals.includes(v)) el.classList.add('selected');
+        });
+      }
+    });
+
+    document.getElementById('pin-setup-wrap').style.display = p.privado === 'Sí, solo yo las veo' ? 'block' : 'none';
+    document.getElementById('p-pin').value = p.pin || '';
+    document.getElementById('ps1-num').textContent = 'Editar perfil';
+  } else {
+    document.getElementById('ps1-num').textContent = 'Nuevo perfil';
+  }
+
+  showPStep(1); updatePProgress();
+  showScreen('parent-onboard');
+}
+
+function editCurrentParent() { startParentOnboard(activeParentIdx); }
+
+function selP(el, group, value) {
+  // Deselect others in same group within same opts container
+  el.closest('.opts, .step, #p-desde-wrap').querySelectorAll(`[onclick*="selP(this,'${group}'"]`).forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  pRadio[group] = value;
+  if (group === 'p_aacc') {
+    document.getElementById('p-desde-wrap').style.display =
+      (value === 'Sí, diagnóstico oficial' || value === 'Sospecha, sin diagnóstico' || value === 'Sí' || value === 'Creo que sí') ? 'block' : 'none';
+  }
+  if (group === 'p_privado') {
+    document.getElementById('pin-setup-wrap').style.display = value === 'Sí, solo yo las veo' ? 'block' : 'none';
+  }
+}
+function chkP(el, group, value) {
+  el.classList.toggle('selected');
+  if (!pCheck[group]) pCheck[group] = [];
+  if (el.classList.contains('selected')) pCheck[group].push(value);
+  else pCheck[group] = pCheck[group].filter(v => v !== value);
+}
+
+function pNext() {
+  if (pStep === P_STEPS) { saveParent(); return; }
+  transStep('p', pStep, pStep + 1, 1); pStep++;
+  updatePProgress();
+}
+function pPrev() {
+  if (pStep <= 1) { goWho(); return; }
+  transStep('p', pStep, pStep - 1, -1); pStep--;
+  updatePProgress();
+}
+function updatePProgress() {
+  document.getElementById('p-progress').style.width = (pStep / P_STEPS * 100) + '%';
+  document.getElementById('p-btn-back').style.display = pStep > 1 ? 'block' : 'none';
+  document.getElementById('p-btn-next').textContent = pStep === P_STEPS ? 'Guardar →' : 'Siguiente →';
+}
+function showPStep(n) {
+  document.querySelectorAll('#parent-onboard .step').forEach(s => s.classList.remove('active','exit'));
+  document.getElementById('ps-' + n).classList.add('active');
+}
+
+function saveParent() {
+  const pin = document.getElementById('p-pin')?.value.trim() || '';
+  const isPrivate = pRadio['p_privado'] === 'Sí, solo yo las veo';
+  const p = {
+    nombre: document.getElementById('p-nombre').value.trim() || pRadio['p_rol'] || 'Sin nombre',
+    rol: pRadio['p_rol'] || 'Otro',
+    photo: pPhoto || null,
+    privado: pRadio['p_privado'] || 'Sí, solo yo las veo',
+    pin: (isPrivate && pin.length === 4) ? pin : null,
+    p_reaccion: (pCheck['p_reaccion'] || []).join(', ') || pRadio['p_reaccion'] || 'no especificado',
+    p_cuesta: (pCheck['p_cuesta'] || []).join(', ') || pRadio['p_cuesta'] || 'no especificado',
+    p_analiza: pRadio['p_analiza'] || 'no especificado',
+    p_afecta: pRadio['p_afecta'] || 'no especificado',
+    p_aacc: pRadio['p_aacc'] || 'no especificado',
+    p_desde: pRadio['p_desde'] || 'n/a',
+    p_estilo: (pCheck['p_estilo'] || []).join(', ') || pRadio['p_estilo'] || 'no especificado',
+    p_limites: pRadio['p_limites'] || 'no especificado',
+    p_necesidad: (pCheck['p_necesidad'] || []).join(', ') || pRadio['p_necesidad'] || 'no especificado',
+    p_gestion: pRadio['p_gestion'] || 'no especificado',
+    p_crisis: (pCheck['p_crisis'] || []).join(', ') || 'no especificado'
+  };
+  if (editingParentIdx !== null) {
+    parents[editingParentIdx] = p;
+    activeParent = p;
+    activeParentIdx = editingParentIdx;
+    editingParentIdx = null;
+  } else {
+    parents.push(p);
+    activeParentIdx = parents.length - 1;
+    activeParent = p;
+  }
+  localStorage.setItem('noa_parents', JSON.stringify(parents));
+  renderChildSelector();
+  showScreen('child-selector');
+  if (children.length === 0) newChild();
+}
+
+// ══ CHILD SELECTOR ══
+function renderChildSelector() {
+  const p = activeParent;
+  const av = p.photo ? `<img src="${p.photo}">` : (p.rol === 'Mamá' ? '👩' : p.rol === 'Papá' ? '👨' : '🧑');
+  document.getElementById('cs-badge-av').innerHTML = av;
+  document.getElementById('cs-badge-name').textContent = p.nombre || p.rol;
+
+  const container = document.getElementById('child-cards');
+  container.innerHTML = '';
+  children.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'child-card';
+    const cAv = c.photo ? `<img src="${c.photo}">` : (c.sexo === 'Chica' ? '👧' : '👦');
+    card.innerHTML = `
+      <div class="ch-av">${cAv}</div>
+      <div class="ch-info">
+        <div class="ch-name">${c.nombre}</div>
+        <div class="ch-meta">${c.edad}${c.diagnostico ? ' · ' + c.diagnostico : ''}</div>
+      </div>
+      <button class="ch-edit" onclick="event.stopPropagation();editChild(${i})">✏️</button>
+      <button class="ch-edit" onclick="event.stopPropagation();confirmDelete('child',${i})" style="color:#e86d6d">🗑️</button>
+      <div class="ch-arrow">›</div>`;
+    card.onclick = () => startChat(i);
+    container.appendChild(card);
+  });
+}
+
+// ══ CHILD ONBOARDING ══
+function newChild() {
+  editingChildIdx = null;
+  cRadio = {}; cCheck = {}; cPhoto = null; cStep = 1;
+  document.querySelectorAll('#child-onboard .opt.selected').forEach(e => e.classList.remove('selected'));
+  document.getElementById('c-nombre').value = '';
+  document.getElementById('c-edad').value = '';
+  document.getElementById('c-extra').value = '';
+  document.getElementById('c-talentos').value = '';
+  document.getElementById('sep-wrap').style.display = 'none';
+  document.getElementById('perdida-wrap').style.display = 'none';
+  document.getElementById('talentos-wrap').style.display = 'none';
+  resetPhotoCircle('c-photo-circle', 'c-photo-input');
+  showCStep(1); updateCProgress();
+  showScreen('child-onboard');
+}
+
+function editChild(i) {
+  editingChildIdx = i;
+  const c = children[i];
+  cRadio = {}; cCheck = {}; cPhoto = c.photo || null; cStep = 1;
+  document.querySelectorAll('#child-onboard .opt.selected').forEach(e => e.classList.remove('selected'));
+  document.getElementById('c-nombre').value = c.nombre !== 'Sin nombre' ? c.nombre : '';
+  document.getElementById('c-edad').value = c.edad !== 'no especificada' ? c.edad : '';
+  document.getElementById('c-extra').value = c.extra !== 'ninguna' ? c.extra : '';
+  document.getElementById('c-talentos').value = c.talentos !== 'no especificados' ? c.talentos : '';
+  resetPhotoCircle('c-photo-circle', 'c-photo-input');
+  if (cPhoto) setPhotoCircle('c-photo-circle', cPhoto);
+
+  const rGroups = ['sexo','diagnostico','familia','perdida','cuando_perdida','hermanos','colegio','psicologo','social','bullying'];
+  rGroups.forEach(g => {
+    if (c[g] && c[g] !== 'no especificado' && c[g] !== 'n/a') {
+      cRadio[g] = c[g];
+      document.querySelectorAll(`[onclick*="selC(this,'${g}'"]`).forEach(el => {
+        if (el.getAttribute('onclick').includes(`'${c[g]}'`)) el.classList.add('selected');
+      });
+    }
+  });
+  ['doble','intensidad','separacion'].forEach(g => {
+    if (c[g] && c[g] !== 'ninguna' && c[g] !== 'n/a' && c[g] !== 'no especificado') {
+      const vals = c[g].split(', ');
+      cCheck[g] = vals;
+      document.querySelectorAll(`[onclick*="chkC(this,'${g}'"]`).forEach(el => {
+        const v = el.getAttribute('onclick').match(/'([^']+)'\)$/)?.[1];
+        if (v && vals.includes(v)) el.classList.add('selected');
+      });
+    }
+  });
+  document.getElementById('sep-wrap').style.display = c.familia === 'Padres separados' ? 'block' : 'none';
+  document.getElementById('perdida-wrap').style.display = c.familia === 'Ha perdido a un progenitor' ? 'block' : 'none';
+  document.getElementById('talentos-wrap').style.display = (c.diagnostico === 'Diagnóstico oficial' || c.diagnostico === 'En proceso') ? 'block' : 'none';
+  showCStep(1); updateCProgress();
+  showScreen('child-onboard');
+}
+
+function selC(el, group, value) {
+  const container = el.closest('.step, #sep-wrap, #perdida-wrap');
+  container.querySelectorAll(`[onclick*="selC(this,'${group}'"]`).forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  cRadio[group] = value;
+  if (group === 'familia') {
+    document.getElementById('sep-wrap').style.display = value === 'Padres separados' ? 'block' : 'none';
+    document.getElementById('perdida-wrap').style.display = value === 'Ha perdido a un progenitor' ? 'block' : 'none';
+  }
+  if (group === 'diagnostico') {
+    document.getElementById('talentos-wrap').style.display = (value === 'Diagnóstico oficial' || value === 'En proceso') ? 'block' : 'none';
+  }
+}
+function chkC(el, group, value) {
+  el.classList.toggle('selected');
+  if (!cCheck[group]) cCheck[group] = [];
+  if (el.classList.contains('selected')) cCheck[group].push(value);
+  else cCheck[group] = cCheck[group].filter(v => v !== value);
+}
+
+function cNext() {
+  if (cStep === C_STEPS) { saveChild(); return; }
+  transStep('c', cStep, cStep + 1, 1); cStep++;
+  updateCProgress();
+}
+function cPrev() {
+  if (cStep <= 1) { 
+    // Go back to child selector
+    document.getElementById('cs-back-chat').style.display = activeChild ? 'block' : 'none';
+    showScreen('child-selector'); 
+    renderChildSelector();
+    return; 
+  }
+  transStep('c', cStep, cStep - 1, -1); cStep--;
+  updateCProgress();
+}
+function updateCProgress() {
+  document.getElementById('c-progress').style.width = (cStep / C_STEPS * 100) + '%';
+  document.getElementById('c-btn-back').style.display = cStep > 1 ? 'block' : 'none';
+  document.getElementById('c-btn-next').textContent = cStep === C_STEPS ? 'Hablar con Noa →' : 'Siguiente →';
+}
+function showCStep(n) {
+  document.querySelectorAll('#child-onboard .step').forEach(s => s.classList.remove('active','exit'));
+  document.getElementById('cs-' + n).classList.add('active');
+}
+
+function saveChild() {
+  const child = {
+    nombre: document.getElementById('c-nombre').value.trim() || 'Sin nombre',
+    edad: document.getElementById('c-edad').value || 'no especificada',
+    sexo: cRadio['sexo'] || 'no especificado',
+    photo: cPhoto || null,
+    diagnostico: cRadio['diagnostico'] || 'no especificado',
+    talentos: document.getElementById('c-talentos').value.trim() || 'no especificados',
+    doble: (cCheck['doble'] || []).join(', ') || 'ninguna',
+    intensidad: (cCheck['intensidad'] || []).join(', ') || 'no especificado',
+    familia: cRadio['familia'] || 'no especificado',
+    separacion: (cCheck['separacion'] || []).join(', ') || 'n/a',
+    perdida: cRadio['perdida'] || 'n/a',
+    cuando_perdida: cRadio['cuando_perdida'] || 'n/a',
+    hermanos: cRadio['hermanos'] || 'no especificado',
+    colegio: cRadio['colegio'] || 'no especificado',
+    psicologo: cRadio['psicologo'] || 'no especificado',
+    social: cRadio['social'] || 'no especificado',
+    bullying: cRadio['bullying'] || 'no especificado',
+    extra: document.getElementById('c-extra').value.trim() || 'ninguna'
+  };
+
+  if (editingChildIdx !== null) {
+    children[editingChildIdx] = child;
+    startChat(editingChildIdx);
+  } else {
+    children.push(child);
+    startChat(children.length - 1);
+  }
+  localStorage.setItem('noa_children', JSON.stringify(children));
+}
+
+// ══ CHAT ══
+function convoKey(parentIdx, childIdx) {
+  const p = parents[parentIdx];
+  return p.privado === 'No, compartidas con el otro progenitor'
+    ? `shared_${childIdx}`
+    : `p${parentIdx}_c${childIdx}`;
+}
+
+function startChat(childIdx) {
+  activeChildIdx = childIdx;
+  activeChild = children[childIdx];
+  loadProfileFilesForChild(childIdx);
+  const key = convoKey(activeParentIdx, childIdx);
+  // load history
+  const saved = conversations[key] || [];
+
+  updateChatPill();
+  chatEl.innerHTML = '';
+  document.getElementById('cs-back-chat').style.display = 'none';
+  showScreen('chat-screen');
+  showBottomNav();
+  loadDiaryData();
+  switchTab('chat');
+
+  if (saved.length === 0) {
+    showPrimaryChips();
+  } else {
+    // Restore conversation — hide chips
+    document.getElementById('primary-chips').classList.add('hidden');
+    saved.forEach(msg => {
+      if (msg.role === 'user') addBubble('user', msg.content);
+      else addBubble('coach', msg.content);
+    });
+  }
+}
+
+function getHistory() {
+  const key = convoKey(activeParentIdx, activeChildIdx);
+  return conversations[key] || [];
+}
+function saveHistory(history) {
+  const key = convoKey(activeParentIdx, activeChildIdx);
+  conversations[key] = history;
+  localStorage.setItem('noa_convos', JSON.stringify(conversations));
+}
+
+function updateChatPill() {
+  const c = activeChild, p = activeParent;
+  const childAv = document.getElementById('pill-child-av');
+  childAv.innerHTML = c.photo ? `<img src="${c.photo}">` : (c.sexo === 'Chica' ? '👧' : '👦');
+  document.getElementById('pill-name').textContent = c.nombre;
+  document.getElementById('pill-meta').textContent = c.edad;
+  document.getElementById('pill-parent').textContent = p.nombre || p.rol;
+  // Update chip label with child name
+  const nameEl = document.getElementById('chip-child-name');
+  if (nameEl) nameEl.textContent = c.nombre;
+}
+
+function usePrimaryChip(el, text) {
+  document.getElementById('primary-chips').classList.add('hidden');
+  isLoading = false;
+  inputEl.value = text;
+  sendBtn.disabled = false;
+  sendMessage();
+}
+
+function openHowToTalk() {
+  document.getElementById('primary-chips').classList.add('hidden');
+  chatEl.innerHTML = '';
+
+  const topics = [
+    { icon: '🔞', text: 'Sexo', label: 'Sexo (cómo empezar sin incomodidad)' },
+    { icon: '📏', text: 'Límites y normas', label: 'Límites y normas (sin pelea ni tensión)' },
+    { icon: '📚', text: 'Estudios', label: 'Estudios (sin presión ni bloqueo)' },
+    { icon: '📱', text: 'Pantallas', label: 'Pantallas (sin discutir ni castigos)' },
+    { icon: '👫', text: 'Amistades', label: 'Amistades (cuando no encaja o sufre)' },
+    { icon: '💭', text: 'Emociones', label: 'Emociones (cuando no sabe lo que siente)' },
+    { icon: '⚡', text: 'Conflictos', label: 'Conflictos (sin escalar la situación)' },
+  ];
+
+  const chipsHtml = topics.map(t =>
+    '<button onclick="sendHowToTalk(\'' + t.text + '\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 8px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:\'DM Sans\',sans-serif;font-size:12.5px;color:var(--text);text-align:left;line-height:1.3;">' +
+    '<span style="font-size:16px;flex-shrink:0">' + t.icon + '</span>' + t.label + '</button>'
+  ).join('');
+
+  const w = document.createElement('div');
+  w.id = 'howtotalk-wrap';
+  w.style.cssText = 'display:flex;flex-direction:column;gap:12px;padding:4px 0;';
+  w.innerHTML =
+    '<p style="font-size:15px;color:var(--text);line-height:1.5;font-weight:400;">Dime qué tema quieres hablar con ' + (activeChild?.nombre||'tu hijo/a') + ' y te digo cómo hacerlo y qué decir exactamente, sin que se cierre.</p>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' + chipsHtml + '</div>' +
+    '<div style="display:flex;gap:8px;align-items:center;">' +
+    '<input id="howtotalk-input" type="text" style="flex:1;background:var(--surface2);border:1.5px solid var(--accent);border-radius:12px;padding:12px 14px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:14px;outline:none;" placeholder="Escribe el tema o la situación…">' +
+    '<button onclick="sendHowToTalkCustom()" style="background:var(--accent);border:none;border-radius:12px;padding:12px 16px;color:#1a0f08;font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">→</button>' +
+    '</div>';
+  chatEl.appendChild(w);
+}
+
+function sendHowToTalk(topic) {
+  document.getElementById('howtotalk-wrap')?.remove();
+  const msg = `💬 Quiero hablar con ${activeChild?.nombre||'mi hijo/a'} sobre: ${topic}`;
+  isLoading = false;
+  inputEl.value = msg;
+  sendBtn.disabled = false;
+  sendMessage();
+}
+
+function sendHowToTalkCustom() {
+  const val = document.getElementById('howtotalk-input')?.value.trim();
+  if (!val) return;
+  sendHowToTalk(val);
+}
+
+function focusChatInput(type) {
+  document.getElementById('primary-chips').classList.add('hidden');
+  chatEl.innerHTML = '';
+  const w = document.createElement('div');
+  w.id = 'inline-input-wrap';
+  w.style.cssText = 'display:flex;flex-direction:column;gap:12px;padding:8px 0;';
+  w.innerHTML = `
+    <p style="font-size:15px;color:var(--text);line-height:1.6;font-weight:400;">Cuéntame qué está pasando o qué sabes que va a pasar hoy, y lo preparamos juntas.</p>
+    <textarea id="inline-input" style="background:var(--surface2);border:1.5px solid var(--accent);border-radius:16px;padding:14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:300;resize:none;outline:none;min-height:120px;line-height:1.6;width:100%;" placeholder="Escribe aquí…"></textarea>
+    <button onclick="sendInlineInput()" style="background:var(--accent);border:none;border-radius:12px;padding:13px;color:#1a0f08;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;">Enviar a Noa →</button>
+  `;
+  chatEl.appendChild(w);
+  setTimeout(() => document.getElementById('inline-input')?.focus(), 100);
+}
+
+function sendInlineInput() {
+  const el = document.getElementById('inline-input');
+  const text = el?.value.trim();
+  if (!text) return;
+  document.getElementById('inline-input-wrap')?.remove();
+  isLoading = false;
+  inputEl.value = text;
+  sendBtn.disabled = false;
+  sendMessage();
+}
+
+function showPrimaryChips() {
+  document.getElementById('primary-chips').classList.remove('hidden');
+}
+
+function resetChat() {
+  // Reset all state
+  isLoading = false;
+  chatAttachment = null;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  document.getElementById('file-preview').classList.remove('show');
+  // Clear visual chat
+  chatEl.innerHTML = '';
+  // Show chips
+  showPrimaryChips();
+}
+
+function getWeeklyContext() {
+  const convKey2 = convoKey(activeParentIdx, activeChildIdx);
+  const history = conversations[convKey2] || [];
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+
+  // Count situation types from user messages this week
+  const situationKeywords = {
+    'insultos': ['insultando','insulta','insulto','insultos','dice palabrotas','me llama'],
+    'explosión emocional': ['explosión','explota','grita','berrinche','desbordado','crisis emocional'],
+    'no estudia': ['estudiar','deberes','tarea','colegio no quiere','no trabaja'],
+    'rechazo colegio': ['rechazo','no quiere ir','odia el colegio','no va','fobia escolar'],
+    'soledad': ['solo','amigos','no tiene amigos','excluido','aislado'],
+    'ansiedad': ['ansiedad','nervioso','angustia','miedo','preocupado','pánico'],
+    'desafío': ['desafía','contesta mal','responde mal','me falta el respeto','manda'],
+    'se niega': ['niega','no quiere','se niega','no hace'],
+  };
+
+  const counts = {};
+  const recentTopics = [];
+
+  history.forEach(m => {
+    if (m.role !== 'user') return;
+    const msgDate = new Date(); // approximate — messages don't have timestamps
+    const text = m.content.toLowerCase();
+    Object.entries(situationKeywords).forEach(([situation, keywords]) => {
+      if (keywords.some(k => text.includes(k))) {
+        counts[situation] = (counts[situation] || 0) + 1;
+        if (!recentTopics.includes(situation)) recentTopics.push(situation);
+      }
+    });
+  });
+
+  const repeated = Object.entries(counts).filter(([,v]) => v > 1).map(([k,v]) => `${k} (${v} veces)`);
+  const diaryKey2 = getDiaryKey();
+  const weekEntries = (diaryEntries[diaryKey2] || []).slice(0, 7);
+  const dominantEmotion = weekEntries.length > 0
+    ? weekEntries.map(e => e.label).reduce((a,b,_,arr) => arr.filter(v=>v===a).length >= arr.filter(v=>v===b).length ? a : b, weekEntries[0]?.label)
+    : null;
+
+  let context = '';
+  if (repeated.length > 0) {
+    context += `\nSITUACIONES REPETIDAS ESTA SEMANA: ${repeated.join(', ')}. Adapta el consejo — si algo ya se ha trabajado, propón una estrategia diferente o más profunda.`;
+  }
+  if (recentTopics.length > 0) {
+    context += `\nTEMAS TRABAJADOS RECIENTEMENTE: ${recentTopics.slice(0,4).join(', ')}.`;
+  }
+  if (dominantEmotion) {
+    context += `\nESTADO EMOCIONAL PREDOMINANTE ESTA SEMANA (diario): ${dominantEmotion}.`;
+  }
+  if (history.length > 6) {
+    context += `\nLLEVA ${Math.floor(history.length/2)} conversaciones con Noa esta semana — conoce bien el contexto, no repitas consejos ya dados.`;
+  }
+  return context;
+}
+
+function buildSystemPrompt() {
+  const p = activeParent, c = activeChild;
+  const weeklyContext = getWeeklyContext();
+  return `Eres Noa, coach especializada en adolescentes con Altas Capacidades (AACC). Acompañas a padres y madres en tiempo real cuando viven situaciones difíciles con su hijo/a.
+
+Tu manera de ser: cálida, cercana, empática. Hablas de forma natural y humana. Validas primero la emoción del padre/madre. Nunca juzgas. Eres concisa y accionable.
+
+BASE DE CONOCIMIENTO — aplicas estos marcos teóricos de forma natural, sin citarlos explícitamente:
+
+· Kazimierz Dabrowski — Sobreexcitabilidades (psicomotriz, sensorial, intelectual, imaginativa, psicosocial). Los AACC no solo piensan más — sienten más, perciben más, reaccionan más. Eso explica la intensidad emocional, las explosiones, la hipersensibilidad a las críticas.
+
+· Linda Silverman — Desarrollo asincrónico: el cerebro AACC avanza intelectualmente mucho más rápido que emocionalmente. Un niño de 12 años puede razonar como un adulto pero gestionar emociones como un niño de 8. Esto es clave para entender las reacciones de ${c.nombre}.
+
+· Jeanne Siaud-Facchin (¿Demasiado inteligente para ser feliz?) — Las dificultades del adulto AACC en la vida cotidiana: hipersensibilidad, pensamiento en árbol, perfeccionismo, dificultad para aceptar la imperfección propia y ajena. Muy relevante cuando el padre/madre también es AACC.
+
+· Susana Arroyo Andreu (Emociones. La cara oculta de las altas capacidades) — La gestión emocional específica de los AACC: por qué explotan, por qué el perfeccionismo les paraliza, por qué la crítica les duele tanto, cómo trabajar con ellos desde la validación emocional.
+
+· Elaine N. Aron (El don de la sensibilidad) — Las Personas Altamente Sensibles (PAS): procesamiento profundo de la información, sobreestimulación, empatía extrema, necesidad de tiempo de recuperación. Muchos AACC son también PAS — eso amplifica todo.
+
+· Maureen Neihart — Necesidades emocionales y sociales del niño AACC: sentido de pertenencia, relaciones con iguales, riesgo de aislamiento social, importancia de encontrar "su tribu".
+
+· Investigación sobre doble excepcionalidad (2e) — AACC con TDAH, TEA, dislexia u otras condiciones: la capacidad intelectual puede enmascarar las dificultades y viceversa. Requieren estrategias específicas que contemplen ambas dimensiones.
+
+PERFIL DE QUIEN TE ESCRIBE (${p.nombre || p.rol}):
+- Rol: ${p.rol}
+- Reacción cuando su hijo se desborda: ${p.p_reaccion}
+- Lo que más le cuesta en esos momentos: ${p.p_cuesta}
+- Analiza demasiado las situaciones: ${p.p_analiza}
+- Cómo le afectan los conflictos: ${p.p_afecta}
+- Se identifica con AACC: ${p.p_aacc}${p.p_desde !== 'n/a' ? ' · Desde: ' + p.p_desde : ''}
+- Estilo educativo: ${p.p_estilo}
+- Le cuesta poner límites: ${p.p_limites}
+- Necesidad principal ahora: ${p.p_necesidad}
+- Gestión emocional general: ${p.p_gestion}
+
+PERFIL DE ${c.nombre.toUpperCase()}:
+- Nombre: ${c.nombre} | Edad: ${c.edad} | Sexo: ${c.sexo}
+- Diagnóstico AACC: ${c.diagnostico}
+- Talentos: ${c.talentos}
+- Doble excepcionalidad: ${c.doble}
+- Intensidad emocional: ${c.intensidad}
+- Situación familiar: ${c.familia}
+- Cómo lleva separación: ${c.separacion}
+- Pérdida progenitor: ${c.perdida} — ${c.cuando_perdida}
+- Hermanos: ${c.hermanos}
+- Colegio conoce AACC: ${c.colegio}
+- Psicólogo: ${c.psicologo}
+- Relaciones sociales: ${c.social}
+- Bullying: ${c.bullying}
+- Notas: ${c.extra}
+${profileFiles.length > 0 ? `- Archivos del perfil: ${profileFiles.map(f=>f.name).join(', ')}` : ''}
+${weeklyContext ? `\nCONTEXTO DE ESTA SEMANA:${weeklyContext}` : ''}
+
+CÓMO ACTÚAS:
+1. Responde SIEMPRE en el formato de abajo — visual y directo.
+2. Si necesitas más contexto haz UNA sola pregunta muy corta antes.
+3. Integra el perfil de forma natural — sin citarlo.
+4. Si el padre/madre también es AACC, incluye siempre la sección PARA TI.
+5. Para situaciones de crisis pura (explosión, insultos) sé muy corta — máximo 8 líneas.
+6. Para situaciones con más matices (rechazo colegio, no estudia, se siente solo) añade la sección 🔍 UN POCO MÁS con 2 claves prácticas extra.
+7. MUY IMPORTANTE — si el CONTEXTO DE ESTA SEMANA indica que esta situación ya se ha trabajado antes, NO repitas el mismo consejo. Propón una estrategia diferente, más profunda o que complemente lo anterior. Menciónalo explícitamente: "Como ya hemos trabajado esto esta semana, vamos un paso más allá."
+8. Si el mensaje empieza por "💬 Quiero hablar con" — es una petición de GUIÓN para hablar de un tema concreto. Responde SIEMPRE con este formato especial:
+
+🗣️ CÓMO HABLARLE DE [TEMA]
+
+🧭 ENFOQUE
+👉 [cómo y cuándo entrar al tema — muy concreto]
+
+🗣️ FRASE EXACTA
+👉 "[lo que tiene que decir literalmente]"
+
+⚠️ EVITA
+👉 [error más común]
+👉 [error secundario]
+
+🔁 SI SE CIERRA
+👉 "[qué decir si no responde o se bloquea]"
+
+💡 CON ' + c.nombre + '
+👉 [una sola línea adaptada a su perfil AACC y situación familiar]
+
+Sin teoría. Sin reflexión. Solo el guión usable.
+
+FORMATO — responde SIEMPRE así, en texto plano (no JSON):
+
+🔴 [SITUACIÓN EN MAYÚSCULAS]
+
+🧠 AHORA MISMO
+👉 [acción 1 — muy corta]
+👉 [acción 2]
+👉 [acción 3]
+
+🗣️ CUANDO BAJE / QUÉ PREGUNTARLE
+👉 Di SOLO esto:
+"[frase literal 1]"
+"[frase literal 2]"
+
+❌ NO HAGAS ESTO
+"[error típico 1]"
+"[error típico 2]"
+
+🧭 QUÉ ESTÁ PASANDO
+👉 [1-2 líneas explicando qué hay detrás — desde el perfil AACC]
+
+🔍 UN POCO MÁS (solo si la situación tiene matices — omite en crisis pura)
+👉 [clave práctica 1 para trabajarlo a medio plazo]
+👉 [clave práctica 2]
+
+💛 PARA TI
+👉 [1 línea de apoyo para ' + (p.nombre||p.rol) + ' — especialmente si es AACC]
+
+SOLO este formato. Sin texto fuera. Sin markdown extra.`;
+}
+
+// ══ UTIL ══
+function transStep(prefix, from, to, dir) {
+  const curr = document.getElementById((prefix === 'p' ? 'ps-' : 'cs-') + from);
+  curr.classList.add('exit');
+  setTimeout(() => curr.classList.remove('active','exit'), 320);
+  const next = document.getElementById((prefix === 'p' ? 'ps-' : 'cs-') + to);
+  next.style.transform = `translateX(${dir * 40}px)`;
+  next.classList.add('active');
+  setTimeout(() => next.style.transform = '', 10);
+}
+
+function resetPhotoCircle(circleId, inputId) {
+  const c = document.getElementById(circleId);
+  const img = c.querySelector('img');
+  if (img) img.remove();
+  c.classList.remove('has-photo');
+  document.getElementById(inputId).value = '';
+}
+function setPhotoCircle(circleId, src) {
+  const c = document.getElementById(circleId);
+  let img = c.querySelector('img');
+  if (!img) { img = document.createElement('img'); c.appendChild(img); }
+  img.src = src;
+  c.classList.add('has-photo');
+}
+function handlePPhoto(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => { pPhoto = ev.target.result; setPhotoCircle('p-photo-circle', pPhoto); };
+  r.readAsDataURL(f);
+}
+function handleCPhoto(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => { cPhoto = ev.target.result; setPhotoCircle('c-photo-circle', cPhoto); };
+  r.readAsDataURL(f);
+}
+
+// ══ FILE HANDLING ══
+let chatAttachment = null;
+let profileFiles = [];
+
+function handleChatFile(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result.split(',')[1];
+    const isImage = file.type.startsWith('image/');
+    chatAttachment = { base64, mediaType: file.type || (isImage ? 'image/jpeg' : 'application/pdf'), name: file.name, isImage, src: e.target.result };
+    const preview = document.getElementById('file-preview');
+    preview.classList.add('show');
+    document.getElementById('fp-name').textContent = file.name;
+    document.getElementById('fp-type').textContent = isImage ? 'Imagen / Dibujo' : 'Documento PDF';
+    document.getElementById('fp-thumb').innerHTML = isImage ? `<img src="${e.target.result}">` : `<div style="font-size:24px">📄</div>`;
+    sendBtn.disabled = false;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function clearAttachment() {
+  chatAttachment = null;
+  document.getElementById('file-preview').classList.remove('show');
+  document.getElementById('fp-thumb').innerHTML = '';
+  if (!inputEl.value.trim()) sendBtn.disabled = true;
+}
+
+function handleProfileFile(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result.split(',')[1];
+    const isImage = file.type.startsWith('image/');
+    profileFiles.push({ base64, mediaType: file.type || 'application/pdf', name: file.name, isImage, src: e.target.result });
+    renderProfileFiles();
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function renderProfileFiles() {
+  const list = document.getElementById('profile-files-list');
+  if (!list) return;
+  list.innerHTML = '';
+  profileFiles.forEach((f, i) => {
+    const card = document.createElement('div'); card.className = 'profile-file-card';
+    const thumb = f.isImage ? `<img src="${f.src}">` : `<div class="pf-icon">📄</div>`;
+    card.innerHTML = `${thumb}<div class="pf-info"><div class="pf-name">${f.name}</div><div class="pf-desc">${f.isImage ? 'Imagen / Dibujo' : 'PDF'}</div></div><button class="pf-del" onclick="removeProfileFile(${i})">🗑️</button>`;
+    list.appendChild(card);
+  });
+}
+
+function removeProfileFile(i) { profileFiles.splice(i,1); renderProfileFiles(); }
+
+// Save/load profile files in child profile
+function saveProfileFilesToChild(child) {
+  // Store only metadata (not base64 to avoid localStorage limits for now)
+  child.profileFilesMeta = profileFiles.map(f => ({name: f.name, isImage: f.isImage}));
+  // Store base64 separately in sessionStorage (available during session)
+  try { sessionStorage.setItem('noa_profile_files_' + activeChildIdx, JSON.stringify(profileFiles.map(f => ({...f})))); } catch(e) {}
+  return child;
+}
+
+function loadProfileFilesForChild(idx) {
+  try {
+    const saved = sessionStorage.getItem('noa_profile_files_' + idx);
+    profileFiles = saved ? JSON.parse(saved) : [];
+  } catch(e) { profileFiles = []; }
+  renderProfileFiles();
+}
+
+inputEl.addEventListener('input', () => { sendBtn.disabled = (inputEl.value.trim() === '' && !chatAttachment) || isLoading; });
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)sendMessage();} }
+function useChip(btn) {
+  const txt = btn.textContent.replace(/^[^\w]*/,'').trim();
+  if (txt === 'Analizar un dibujo') {
+    document.getElementById('chat-file-input').click();
+    return;
+  }
+  inputEl.value = txt; autoResize(inputEl); sendBtn.disabled=false; inputEl.focus();
+}
+
+function addCoachBubble(text) {
+  const w = document.createElement('div'); w.className = 'bw coach';
+  w.innerHTML = `<div class="bl">Noa</div><div class="bb">${esc(text)}</div>`;
+  chatEl.appendChild(w); chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function addUserFileBubble(att) {
+  const w = document.createElement('div'); w.className = 'bw user';
+  const thumb = att.isImage ? `<img src="${att.src}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">` : `<span style="font-size:24px">📄</span>`;
+  w.innerHTML = `<div class="bl">Tú</div><div class="user-file-bubble">${thumb}<div class="uf-info"><div class="uf-name">${esc(att.name)}</div><div class="uf-type">${att.isImage ? 'Imagen / Dibujo' : 'PDF'}</div></div></div>`;
+  chatEl.appendChild(w); chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function addBubble(role, content) {
+  const w = document.createElement('div'); w.className = `bw ${role}`;
+  if (role === 'user') {
+    w.innerHTML = `<div class="bl">Tú</div><div class="bb">${esc(content)}</div>`;
+  } else {
+    // Render plain text format with line breaks
+    w.innerHTML = `<div class="bl">Noa</div><div class="bb noa-formatted">${formatNoaResponse(content)}</div>`;
+  }
+  chatEl.appendChild(w); chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function formatNoaResponse(text) {
+  return text
+    .split('\n')
+    .map(line => {
+      const t = line.trim();
+      if (!t) return '<br>';
+      // Section headers (🔴 🧠 🗣️ ❌ 🧭 💛)
+      if (/^[🔴🧠🗣️❌🧭💛]/.test(t)) {
+        return `<div class="noa-section">${esc(t)}</div>`;
+      }
+      // Action lines
+      if (t.startsWith('👉')) {
+        return `<div class="noa-action">${esc(t)}</div>`;
+      }
+      // Quoted phrases
+      if (t.startsWith('"') && t.endsWith('"')) {
+        return `<div class="noa-quote">${esc(t)}</div>`;
+      }
+      return `<div class="noa-line">${esc(t)}</div>`;
+    })
+    .join('');
+}
+
+function showTyping() {
+  const w = document.createElement('div'); w.className='tw'; w.id='typing';
+  w.innerHTML=`<div class="bl">Noa</div><div class="ti"><span></span><span></span><span></span></div>`;
+  chatEl.appendChild(w); chatEl.scrollTop=chatEl.scrollHeight;
+}
+function removeTyping() { const t=document.getElementById('typing'); if(t)t.remove(); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  const att = chatAttachment;
+  if (!text && !att || isLoading) return;
+
+  inputEl.value=''; inputEl.style.height='auto'; sendBtn.disabled=true; isLoading=true;
+
+  const history = getHistory();
+
+  // Build user message content
+  let userContent;
+  if (att) {
+    addUserFileBubble(att);
+    const contentParts = [];
+    if (att.isImage) {
+      contentParts.push({ type:'image', source:{ type:'base64', media_type: att.mediaType, data: att.base64 }});
+    } else {
+      contentParts.push({ type:'document', source:{ type:'base64', media_type:'application/pdf', data: att.base64 }});
+    }
+    if (text) contentParts.push({ type:'text', text });
+    else contentParts.push({ type:'text', text: att.isImage ? 'Analiza este dibujo de mi hijo/a y dime qué observas emocionalmente.' : 'Analiza este documento y dime qué observas.' });
+    userContent = contentParts;
+    clearAttachment();
+  } else {
+    addBubble('user', text);
+    userContent = text;
+  }
+
+  // Add profile files context to first message if available
+  const msgs = [...history];
+  msgs.push({ role:'user', content: userContent });
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1200, system: buildSystemPrompt(), messages: msgs })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || '{}';
+    removeTyping();
+    // Save text version to history
+    history.push({ role:'user', content: text || '[archivo adjunto]' });
+    history.push({ role:'assistant', content: reply });
+    saveHistory(history);
+    addBubble('coach', reply);
+  } catch(e) {
+    removeTyping();
+    addCoachBubble('Vaya, ha habido un error de conexión. Inténtalo de nuevo, estoy aquí.');
+  }
+  isLoading=false; sendBtn.disabled = (inputEl.value.trim()==='' && !chatAttachment) || isLoading;
+}
+
+// ══ BOTTOM NAV & TABS ══
+let currentTab = 'chat';
+function switchTab(tab) {
+  currentTab = tab;
+  ['chat','diary','report','ach','library'].forEach(t => {
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === (tab==='achievements'?'ach':tab));
+  });
+  const screenMap = {
+    'chat': 'chat-screen',
+    'diary': 'diary-screen',
+    'report': 'report-screen',
+    'achievements': 'achievements-screen',
+    'library': 'library-screen'
+  };
+  showScreen(screenMap[tab] || 'chat-screen');
+  if (tab==='diary') renderDiary();
+  if (tab==='achievements') renderAchievements();
+  if (tab==='report') initReportScreen();
+}
+
+function showBottomNav() {
+  document.getElementById('bottom-nav').classList.add('visible');
+  document.getElementById('crisis-fab').classList.add('visible');
+}
+function hideBottomNav() {
+  document.getElementById('bottom-nav').classList.remove('visible');
+  document.getElementById('crisis-fab').classList.remove('visible');
+}
+
+// ── DRAGGABLE FAB ──
+(function() {
+  const fab = document.getElementById('crisis-fab');
+  let isDragging = false, startX, startY, startLeft, startTop, moved = false;
+
+  function getPos() {
+    const rect = fab.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  }
+
+  function onStart(e) {
+    isDragging = true; moved = false;
+    fab.classList.add('dragging');
+    const pos = getPos();
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX; startY = touch.clientY;
+    startLeft = pos.left; startTop = pos.top;
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    fab.style.left = startLeft + 'px';
+    fab.style.top = startTop + 'px';
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const touch = e.touches ? e.touches[0] : e;
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    const newLeft = Math.max(8, Math.min(window.innerWidth - 60, startLeft + dx));
+    const newTop = Math.max(8, Math.min(window.innerHeight - 60, startTop + dy));
+    fab.style.left = newLeft + 'px';
+    fab.style.top = newTop + 'px';
+    e.preventDefault();
+  }
+
+  function onEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    fab.classList.remove('dragging');
+    if (!moved) openCrisis();
+  }
+
+  fab.addEventListener('touchstart', onStart, {passive:false});
+  fab.addEventListener('touchmove', onMove, {passive:false});
+  fab.addEventListener('touchend', onEnd);
+  fab.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', e => { if(isDragging) onMove(e); });
+  document.addEventListener('mouseup', e => { if(isDragging) onEnd(e); });
+})();
+
+// ══ DIARY ══
+let diaryEmotion = null, diaryIntensity = null;
+let diaryEntries = {};
+let achEntries = {};
+let lastReport = null;
+let reportGenerating = false;
+let savedReports = {};
+let viewingReportIdx = null;
+
+function getDiaryKey() { return `diary_c${activeChildIdx}_p${activeParentIdx}`; }
+function getAchKey() { return `ach_c${activeChildIdx}`; }
+
+function loadDiaryData() {
+  try { diaryEntries = JSON.parse(localStorage.getItem('noa_diary') || '{}'); } catch(e) { diaryEntries = {}; }
+  try { achEntries = JSON.parse(localStorage.getItem('noa_ach') || '{}'); } catch(e) { achEntries = {}; }
+  try { savedReports = JSON.parse(localStorage.getItem('noa_all_reports') || '{}'); } catch(e) { savedReports = {}; }
+}
+
+// ── DIARY DRAWING ──
+let diaryDrawing = null;
+
+function handleDiaryDrawing(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    diaryDrawing = { base64: e.target.result.split(',')[1], src: e.target.result, name: file.name };
+    document.getElementById('diary-drawing-thumb').src = e.target.result;
+    document.getElementById('diary-drawing-name').textContent = file.name;
+    document.getElementById('diary-drawing-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearDiaryDrawing() {
+  diaryDrawing = null;
+  document.getElementById('diary-drawing-preview').style.display = 'none';
+  document.getElementById('diary-drawing-input').value = '';
+}
+
+function toggleDiaryForm() {
+  const w = document.getElementById('diary-form-wrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+  diaryEmotion = null; diaryIntensity = null; diaryDrawing = null;
+  document.getElementById('diary-note').value = '';
+  document.getElementById('diary-drawing-preview').style.display = 'none';
+  document.getElementById('diary-drawing-input').value = '';
+  document.querySelectorAll('.emotion-opt').forEach(e => e.classList.remove('sel'));
+  document.querySelectorAll('.int-btn').forEach(e => e.classList.remove('sel'));
+}
+
+function selEmotion(el, emoji, label) {
+  document.querySelectorAll('#diary-form-wrap .emotion-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  diaryEmotion = { emoji, label };
+}
+
+function selIntensity(el, val) {
+  document.querySelectorAll('.int-btn').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  diaryIntensity = val;
+}
+
+function saveDiaryEntry() {
+  if (!diaryEmotion) { alert('Elige una emoción'); return; }
+  const key = getDiaryKey();
+  if (!diaryEntries[key]) diaryEntries[key] = [];
+  const entry = {
+    date: new Date().toISOString(),
+    emoji: diaryEmotion.emoji,
+    label: diaryEmotion.label,
+    intensity: diaryIntensity || 3,
+    note: document.getElementById('diary-note').value.trim(),
+    drawing: diaryDrawing ? diaryDrawing.src : null
+  };
+  diaryEntries[key].unshift(entry);
+  localStorage.setItem('noa_diary', JSON.stringify(diaryEntries));
+  toggleDiaryForm();
+  renderDiary();
+  checkWeeklySummary();
+  // If drawing attached, analyze it with Noa
+  if (diaryDrawing) analyzeDiaryDrawing(entry, diaryDrawing);
+}
+
+async function analyzeDiaryDrawing(entry, drawing) {
+  // Switch to chat and send drawing for analysis
+  switchTab('chat');
+  document.getElementById('primary-chips').classList.add('hidden');
+  const d = new Date(entry.date).toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
+  addBubble('user', `🎨 Dibujo del ${d} — estado: ${entry.label} (${entry.intensity}/5)${entry.note ? ' — ' + entry.note : ''}`);
+
+  // Show typing
+  const tw = document.createElement('div'); tw.className='tw'; tw.id='diary-typing';
+  tw.innerHTML=`<div class="bl">Noa</div><div class="ti"><span></span><span></span><span></span></div>`;
+  chatEl.appendChild(tw); chatEl.scrollTop = chatEl.scrollHeight;
+
+  const history = [{
+    role: 'user',
+    content: [
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: drawing.base64 } },
+      { type: 'text', text: `Este es un dibujo de ${activeChild?.nombre} hecho el ${d}. Su estado emocional ese día era: ${entry.label} (intensidad ${entry.intensity}/5).${entry.note ? ' Contexto: ' + entry.note : ''} ¿Qué observas en el dibujo desde el punto de vista emocional y del desarrollo AACC? Sé breve, cálida y práctica.` }
+    ]
+  }];
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, system: buildSystemPrompt(), messages: history })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || '';
+    document.getElementById('diary-typing')?.remove();
+    addCoachBubble(reply);
+  } catch(e) {
+    document.getElementById('diary-typing')?.remove();
+    addCoachBubble('He guardado el dibujo en el diario. Cuando quieras, cuéntame cómo estuvo ese momento.');
+  }
+}
+
+function renderDiary() {
+  const key = getDiaryKey();
+  const entries = diaryEntries[key] || [];
+  const container = document.getElementById('diary-entries');
+  container.innerHTML = '';
+  if (entries.length === 0) {
+    container.innerHTML = `<div class="empty-state"><span class="es-icon">📓</span>Aún no hay entradas. Empieza registrando cómo está ${activeChild?.nombre||'tu hijo/a'} hoy.</div>`;
+    return;
+  }
+  entries.forEach((e, i) => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+    const card = document.createElement('div'); card.className = 'diary-entry';
+    card.innerHTML = `
+      <div class="de-emoji">${e.emoji}</div>
+      <div class="de-info">
+        <div class="de-date">${dateStr}</div>
+        <div class="de-emotion">${e.label}</div>
+        <div class="de-intensity">Intensidad: ${'●'.repeat(e.intensity)}${'○'.repeat(5-e.intensity)}</div>
+        ${e.note ? `<div class="de-note">${esc(e.note)}</div>` : ''}
+      </div>
+      <button class="de-del" onclick="deleteDiaryEntry(${i})">🗑️</button>`;
+    container.appendChild(card);
+  });
+}
+
+function deleteDiaryEntry(i) {
+  const key = getDiaryKey();
+  diaryEntries[key].splice(i, 1);
+  localStorage.setItem('noa_diary', JSON.stringify(diaryEntries));
+  renderDiary();
+}
+
+async function checkWeeklySummary() {
+  const key = getDiaryKey();
+  const entries = diaryEntries[key] || [];
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekEntries = entries.filter(e => new Date(e.date) > weekAgo);
+  if (weekEntries.length < 3) { document.getElementById('week-summary-wrap').innerHTML = ''; return; }
+
+  const wrap = document.getElementById('week-summary-wrap');
+  wrap.innerHTML = `<div class="week-card"><h3>🌿 Resumen semanal de Noa</h3><p class="wsc-loading">Noa está analizando la semana de ${activeChild?.nombre||'tu hijo/a'}…</p></div>`;
+
+  const summary = weekEntries.map(e => `${new Date(e.date).toLocaleDateString('es-ES',{weekday:'short'})}: ${e.label} (intensidad ${e.intensity})${e.note ? ' — ' + e.note : ''}`).join('\n');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:400,
+        system: `Eres Noa, coach AACC. Analiza el registro emocional semanal de ${activeChild?.nombre||'el niño/a'} (${activeChild?.edad}, ${activeChild?.diagnostico}) y escribe un resumen breve y cálido para su padre/madre. Detecta patrones, momentos de mejora y qué merece atención. Máximo 4 frases. Sin JSON, solo texto natural.`,
+        messages: [{role:'user', content: `Registro de la semana:\n${summary}`}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    wrap.innerHTML = `<div class="week-card"><h3>🌿 Resumen semanal de Noa</h3><p>${esc(text)}</p></div>`;
+  } catch(e) {
+    wrap.innerHTML = '';
+  }
+}
+
+// ══ ACHIEVEMENTS ══
+let achIcon = '🌟';
+
+function toggleAchForm() {
+  const w = document.getElementById('ach-form-wrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+  achIcon = '🌟';
+  document.getElementById('ach-title').value = '';
+  document.getElementById('ach-note').value = '';
+  document.querySelectorAll('#ach-form-wrap .emotion-opt').forEach(e => e.classList.remove('sel'));
+}
+
+function selAchIcon(el, icon) {
+  document.querySelectorAll('#ach-form-wrap .emotion-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  achIcon = icon;
+}
+
+function saveAchievement() {
+  const title = document.getElementById('ach-title').value.trim();
+  if (!title) { alert('Describe el logro'); return; }
+  const key = getAchKey();
+  if (!achEntries[key]) achEntries[key] = [];
+  achEntries[key].unshift({
+    date: new Date().toISOString(),
+    icon: achIcon,
+    title,
+    note: document.getElementById('ach-note').value.trim()
+  });
+  localStorage.setItem('noa_ach', JSON.stringify(achEntries));
+  toggleAchForm();
+  renderAchievements();
+}
+
+function renderAchievements() {
+  const key = getAchKey();
+  const entries = achEntries[key] || [];
+  const container = document.getElementById('ach-list');
+  container.innerHTML = '';
+  if (entries.length === 0) {
+    container.innerHTML = `<div class="empty-state"><span class="es-icon">⭐</span>Registra aquí los momentos buenos — cuando algo funcionó, cuando ${activeChild?.nombre||'tu hijo/a'} gestionó algo difícil, cuando hubo conexión. Importan tanto como los problemas.</div>`;
+    return;
+  }
+  entries.forEach((e, i) => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'long'});
+    const card = document.createElement('div'); card.className = 'achievement-card';
+    card.innerHTML = `
+      <div class="ac-icon">${e.icon}</div>
+      <div class="ac-info">
+        <div class="ac-date">${dateStr}</div>
+        <div class="ac-title">${esc(e.title)}</div>
+        ${e.note ? `<div class="ac-note">${esc(e.note)}</div>` : ''}
+      </div>
+      <button class="ac-del" onclick="deleteAch(${i})">🗑️</button>`;
+    container.appendChild(card);
+  });
+}
+
+function deleteAch(i) {
+  const key = getAchKey();
+  achEntries[key].splice(i, 1);
+  localStorage.setItem('noa_ach', JSON.stringify(achEntries));
+  renderAchievements();
+}
+
+// ══ CRISIS MODE ══
+let crisisHistory = [];
+let crisisLoading = false;
+const crisisInputEl = document.getElementById('crisis-input');
+const crisisSendEl = document.getElementById('crisis-send');
+
+crisisInputEl.addEventListener('input', () => {
+  crisisSendEl.disabled = crisisInputEl.value.trim() === '' || crisisLoading;
+  autoResize(crisisInputEl);
+});
+
+function handleCrisisKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!crisisSendEl.disabled)sendCrisis();} }
+
+function openCrisis() {
+  crisisHistory = [];
+  const crisisChatEl = document.getElementById('crisis-chat');
+  crisisChatEl.innerHTML = '';
+  showScreen('crisis-screen');
+  hideBottomNav();
+
+  const nombre = activeChild?.nombre || 'tu hijo/a';
+
+  // Calming message immediately
+  const calmDiv = document.createElement('div');
+  calmDiv.className = 'crisis-calm';
+  calmDiv.innerHTML = `<p>Respira. Estoy contigo.<br>Vamos a manejar esto ahora.</p>`;
+  crisisChatEl.appendChild(calmDiv);
+
+  // Noa asks with chips
+  const w = document.createElement('div');
+  w.className = 'bw coach';
+  w.innerHTML = `<div class="bl">Noa</div><div class="bb">¿Qué está pasando con ${esc(nombre)}?</div>`;
+  crisisChatEl.appendChild(w);
+
+  // Situation chips
+  const chipsDiv = document.createElement('div');
+  chipsDiv.className = 'crisis-chips';
+  chipsDiv.id = 'crisis-chips';
+  const situations = [
+    { icon: '🔴', text: 'Está gritando / muy enfadado' },
+    { icon: '🧊', text: 'Está bloqueado / no responde' },
+    { icon: '⚡', text: 'Me desafía / me contesta mal' },
+    { icon: '🚫', text: 'Se niega a hacer algo' },
+    { icon: '😢', text: 'Está triste / desbordado' },
+    { icon: '✏️', text: 'Cuéntame exactamente qué pasa…' },
+  ];
+  situations.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'crisis-chip';
+    btn.innerHTML = `<span class="cc-icon">${s.icon}</span><span>${esc(s.text)}</span>`;
+    btn.onclick = () => selectCrisisSituation(s.text, s.icon === '✏️');
+    chipsDiv.appendChild(btn);
+  });
+  crisisChatEl.appendChild(chipsDiv);
+
+  // Scroll to TOP so calming message is first thing seen
+  crisisChatEl.scrollTop = 0;
+}
+
+function selectCrisisSituation(text, freeText) {
+  // Remove chips
+  document.getElementById('crisis-chips')?.remove();
+
+  if (freeText) {
+    // Focus input so user can type
+    crisisInputEl.focus();
+    addCrisisBubble('coach', `Cuéntame. ¿Qué está pasando exactamente ahora mismo?`);
+    return;
+  }
+
+  // Treat chip selection as user message and get Noa response
+  addCrisisBubble('user', text);
+  crisisHistory.push({role:'user', content: text});
+  getCrisisResponse(text);
+}
+
+async function getCrisisResponse(text) {
+  crisisLoading = true;
+  crisisSendEl.disabled = true;
+  const crisisChatEl = document.getElementById('crisis-chat');
+  const tw = document.createElement('div'); tw.className='tw'; tw.id='crisis-typing';
+  tw.innerHTML=`<div class="bl">Noa</div><div class="ti"><span></span><span></span><span></span></div>`;
+  crisisChatEl.appendChild(tw); crisisChatEl.scrollTop=crisisChatEl.scrollHeight;
+
+  const crisisPrompt = `Eres Noa, coach AACC. El padre/madre está en MODO CRISIS ahora mismo con ${activeChild?.nombre||'su hijo/a'} (${activeChild?.edad}, ${activeChild?.diagnostico}).
+REGLAS: Máximo 3 frases. Directa e inmediata. UNA acción concreta para hacer AHORA. Tono calmado y urgente. NO uses JSON — solo texto directo.
+Perfil padre/madre: ${activeParent?.p_crisis||''} — gestión emocional: ${activeParent?.p_gestion||''}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:200, system:crisisPrompt, messages:crisisHistory})
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || '';
+    document.getElementById('crisis-typing')?.remove();
+    crisisHistory.push({role:'assistant', content:reply});
+    addCrisisBubble('coach', reply);
+  } catch(e) {
+    document.getElementById('crisis-typing')?.remove();
+    addCrisisBubble('coach', 'Respira. No entres ahora. Dale espacio y vuelve en 5 minutos.');
+  }
+  crisisLoading = false;
+  crisisSendEl.disabled = crisisInputEl.value.trim()==='';
+}
+
+function closeCrisis() {
+  showBottomNav();
+  switchTab(currentTab || 'chat');
+}
+
+function addCrisisBubble(role, text) {
+  const crisisChatEl = document.getElementById('crisis-chat');
+  const w = document.createElement('div'); w.className = `bw ${role}`;
+  if (role === 'user') {
+    w.innerHTML = `<div class="bl">Tú</div><div class="bb">${esc(text)}</div>`;
+  } else {
+    w.innerHTML = `<div class="bl">Noa</div><div class="bb">${esc(text)}</div>`;
+  }
+  crisisChatEl.appendChild(w); crisisChatEl.scrollTop = crisisChatEl.scrollHeight;
+}
+
+async function sendCrisis() {
+  const text = crisisInputEl.value.trim();
+  if (!text || crisisLoading) return;
+  crisisInputEl.value = ''; crisisInputEl.style.height='auto';
+  crisisSendEl.disabled = true;
+  // Remove chips if still showing
+  document.getElementById('crisis-chips')?.remove();
+  addCrisisBubble('user', text);
+  crisisHistory.push({role:'user', content:text});
+  getCrisisResponse(text);
+}
+
+// ══ INIT ══
+loadDiaryData();
+renderWho();
+checkSundayReport();
+
+function getReportsKey() { return `noa_reports_c${activeChildIdx}`; }
+
+function loadSavedReports() {
+  try { savedReports = JSON.parse(localStorage.getItem('noa_all_reports') || '{}'); }
+  catch(e) { savedReports = {}; }
+}
+
+function initReportScreen() {
+  loadSavedReports();
+  const isSunday = new Date().getDay() === 0;
+  const key = getReportsKey();
+  const reports = savedReports[key] || [];
+  const hint = document.getElementById('sunday-hint-wrap');
+  if (isSunday) {
+    const lastDate = reports[0] ? new Date(reports[0]._generated) : null;
+    const daysSince = lastDate ? Math.floor((new Date()-lastDate)/(1000*60*60*24)) : 999;
+    if (daysSince >= 6) {
+      hint.innerHTML = `<div class="sunday-hint"><p>🌿 Es domingo — hora del informe semanal de <strong>${activeChild?.nombre||'tu hijo/a'}</strong>.</p><button onclick="generateReport()">Generar ahora</button></div>`;
+    } else { hint.innerHTML=''; }
+  } else { hint.innerHTML=''; }
+  renderReportList();
+  if (viewingReportIdx !== null) viewReport(viewingReportIdx);
+  else document.getElementById('report-content').innerHTML = '';
+}
+
+function renderReportList() {
+  const key = getReportsKey();
+  const reports = savedReports[key] || [];
+  const container = document.getElementById('report-list');
+  if (reports.length === 0) {
+    container.innerHTML = `<div class="report-empty"><span>📋</span>Aún no hay informes guardados.<br>Pulsa "✨ Nuevo" para generar el primero.<br><br><small style="color:var(--muted);font-size:12px">Noa analizará las conversaciones de la semana,<br>el diario emocional y los logros registrados.</small></div>`;
+    return;
+  }
+  container.innerHTML = reports.map((r, i) => {
+    const d = new Date(r._generated);
+    const dateStr = d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const weekStart = new Date(d); weekStart.setDate(d.getDate()-6);
+    const weekStr = `${weekStart.toLocaleDateString('es-ES',{day:'numeric',month:'short'})} – ${d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})}`;
+    return `<div class="report-list-card" onclick="viewReport(${i})">
+      <div class="rlc-icon">📋</div>
+      <div class="rlc-info">
+        <div class="rlc-date">${dateStr}</div>
+        <div class="rlc-meta">Semana del ${weekStr}</div>
+      </div>
+      <div class="rlc-actions" onclick="event.stopPropagation()">
+        <button class="rlc-btn" onclick="shareReport(${i})" title="Compartir PDF">📄</button>
+        <button class="rlc-btn del" onclick="confirmDeleteReport(${i})" title="Borrar">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewReport(i) {
+  const key = getReportsKey();
+  const reports = savedReports[key] || [];
+  const r = reports[i]; if (!r) return;
+  viewingReportIdx = i; lastReport = r;
+  const d = new Date(r._generated);
+  const dateStr = d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const weekStart = new Date(d); weekStart.setDate(d.getDate()-6);
+  const weekStr = `${weekStart.toLocaleDateString('es-ES',{day:'numeric',month:'long'})} – ${d.toLocaleDateString('es-ES',{day:'numeric',month:'long'})}`;
+  const sections = [
+    {icon:'🌿',title:'Resumen de la semana',content:`<p>${esc(r.resumen_general)}</p>`},
+    {icon:'💭',title:'Estado emocional',content:`<p>${esc(r.estado_emocional)}</p>`},
+    {icon:'🔍',title:'Situaciones trabajadas',content:`<ul>${(r.situaciones_trabajadas||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`},
+    {icon:'🔄',title:'Patrones detectados',content:`<ul>${(r.patrones_detectados||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`},
+    {icon:'✅',title:'Qué ha funcionado',content:`<ul>${(r.que_ha_funcionado||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`},
+    {icon:'👀',title:'Merece atención',content:`<ul>${(r.merece_atencion||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`},
+    {icon:'⭐',title:'Logros de la semana',content:`<ul>${(r.logros_semana||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`},
+    {icon:'🗓️',title:'Recomendaciones',content:`<ul>${(r.recomendaciones||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`},
+    {icon:'💛',title:'Mensaje de Noa',content:`<p>${esc(r.mensaje_final)}</p>`},
+  ];
+  document.getElementById('report-content').innerHTML = `
+    <div class="report-detail">
+      <div class="report-detail-header">
+        <h3>Semana del ${weekStr}</h3>
+        <div class="rdh-actions">
+          <button class="rlc-btn" onclick="shareReport(${i})">📄 Compartir</button>
+          <button class="rlc-btn" onclick="document.getElementById('report-content').innerHTML='';viewingReportIdx=null">✕</button>
+        </div>
+      </div>
+      <div class="report-detail-body">
+        <div class="report-meta">${dateStr}</div>
+        ${sections.map(s=>`<div class="report-section"><h3>${s.icon} ${s.title}</h3>${s.content}</div>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('report-content').scrollIntoView({behavior:'smooth'});
+}
+
+function confirmDeleteReport(i) {
+  const key = getReportsKey();
+  const r = (savedReports[key]||[])[i];
+  if (!r) return;
+  const d = new Date(r._generated).toLocaleDateString('es-ES',{day:'numeric',month:'long'});
+  document.getElementById('del-msg').textContent = `Se eliminará el informe del ${d}. Esta acción no se puede deshacer.`;
+  document.getElementById('del-confirm-btn').onclick = () => { closeDelModal(); deleteReport(i); };
+  document.getElementById('del-modal').classList.add('open');
+}
+
+function deleteReport(i) {
+  const key = getReportsKey();
+  if (!savedReports[key]) return;
+  savedReports[key].splice(i,1);
+  localStorage.setItem('noa_all_reports', JSON.stringify(savedReports));
+  if (viewingReportIdx === i) { document.getElementById('report-content').innerHTML=''; viewingReportIdx=null; }
+  renderReportList();
+}
+
+function shareReport(i) {
+  const key = getReportsKey();
+  const r = (savedReports[key]||[])[i];
+  if (!r) return;
+  lastReport = r;
+  downloadReportPDF();
+}
+
+async function generateReport() {
+  if (reportGenerating) return;
+  reportGenerating = true;
+
+  // Scroll to top of report screen so loading is visible
+  document.querySelector('#report-screen .tab-scroll')?.scrollTo(0,0);
+  document.getElementById('report-content').innerHTML = `<div class="report-generating"><span class="rg-spin">🌿</span><p>Noa está analizando la semana de ${activeChild?.nombre||'tu hijo/a'}…</p></div>`;
+
+  // Small delay so UI updates before processing
+  await new Promise(r => setTimeout(r, 100));
+
+  try {
+    const c = activeChild, p = activeParent;
+    const diaryKey = getDiaryKey();
+    const achKey = getAchKey();
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+    const weekDiary = (diaryEntries[diaryKey]||[]).filter(e => new Date(e.date)>weekAgo);
+    const weekAch = (achEntries[achKey]||[]).filter(e => new Date(e.date)>weekAgo);
+    const convKey = convoKey(activeParentIdx, activeChildIdx);
+    const convHistory = conversations[convKey] || [];
+    const userMessages = convHistory.filter(m=>m.role==='user').map(m=>m.content);
+
+    // Generate report locally based on data
+    const emotions = weekDiary.map(e=>e.label);
+    const avgIntensity = weekDiary.length ? Math.round(weekDiary.reduce((s,e)=>s+e.intensity,0)/weekDiary.length*10)/10 : null;
+    const emotionCount = {};
+    emotions.forEach(e=>{ emotionCount[e]=(emotionCount[e]||0)+1; });
+    const topEmotion = Object.entries(emotionCount).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const hasPositive = emotions.some(e=>['Contento','Tranquilo','Eufórico'].includes(e));
+    const hasNegative = emotions.some(e=>['Triste','Enfadado','Ansioso','Frustrado','Bloqueado'].includes(e));
+    const d = new Date();
+    const weekStart = new Date(d); weekStart.setDate(d.getDate()-6);
+    const periodoStr = `${weekStart.toLocaleDateString('es-ES',{day:'numeric',month:'long'})} – ${d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}`;
+
+    // Build report from actual data
+    const situaciones = userMessages.slice(-10).filter(m=>m.length>20).slice(0,4).map(m=>m.slice(0,80)+'…') ;
+    const logros = weekAch.map(a=>`${a.icon} ${a.title}`);
+
+    const report = {
+      _generated: new Date().toISOString(),
+      periodo: periodoStr,
+      resumen_general: weekDiary.length > 0
+        ? `Ha sido una semana con ${weekDiary.length} registro${weekDiary.length>1?'s':''} emocionales. ${topEmotion ? `La emoción más frecuente ha sido "${topEmotion}".` : ''} ${avgIntensity ? `La intensidad media ha sido ${avgIntensity}/5.` : ''} ${hasPositive && hasNegative ? 'Ha habido momentos difíciles pero también momentos de calma.' : hasPositive ? 'En general ha habido momentos positivos esta semana.' : 'Ha sido una semana emocionalmente intensa.'}`
+        : `Esta semana no hay entradas en el diario emocional de ${c.nombre}. ${userMessages.length > 0 ? `Sí ha habido ${userMessages.length} conversación${userMessages.length>1?'es':''} con Noa.` : 'Es un buen momento para empezar a registrar cómo se encuentra cada día.'}`,
+      estado_emocional: weekDiary.length > 0
+        ? `${topEmotion ? `Predomina el estado "${topEmotion}"` : 'Estado variado'}${avgIntensity ? ` con una intensidad media de ${avgIntensity}/5` : ''}. ${weekDiary.length >= 5 ? 'Buen seguimiento esta semana.' : 'Pocos registros — intenta añadir uno cada día.'}`
+        : 'Sin datos del diario esta semana. Los registros diarios ayudan a detectar patrones.',
+      situaciones_trabajadas: situaciones.length > 0
+        ? situaciones
+        : userMessages.length > 0
+          ? [`${userMessages.length} conversación${userMessages.length>1?'es':''} con Noa esta semana`]
+          : ['Sin conversaciones registradas esta semana'],
+      patrones_detectados: detectPatterns(weekDiary, c),
+      que_ha_funcionado: buildWhatWorked(weekDiary, weekAch, c),
+      merece_atencion: buildNeedsAttention(weekDiary, c),
+      logros_semana: logros.length > 0 ? logros : ['Sin logros registrados esta semana — recuerda anotar los momentos buenos'],
+      recomendaciones: buildRecommendations(weekDiary, weekAch, c, userMessages),
+      mensaje_final: buildMessage(p, c, weekDiary, weekAch)
+    };
+
+    lastReport = report;
+    const key = getReportsKey();
+    if (!savedReports[key]) savedReports[key] = [];
+    savedReports[key].unshift(report);
+    try { localStorage.setItem('noa_all_reports', JSON.stringify(savedReports)); } catch(e) {}
+    renderReportList();
+    viewingReportIdx = 0;
+    viewReport(0);
+
+  } catch(err) {
+    document.getElementById('report-content').innerHTML = `<div class="report-empty"><span>😔</span>Error al generar el informe. Inténtalo de nuevo.<br><small style="color:var(--muted);font-size:11px">${err.message}</small></div>`;
+    console.error(err);
+  } finally {
+    reportGenerating = false;
+  }
+}
+
+function detectPatterns(diary, c) {
+  const patterns = [];
+  if (diary.length === 0) return ['Sin suficientes datos para detectar patrones esta semana'];
+  const highIntensity = diary.filter(e=>e.intensity>=4);
+  if (highIntensity.length >= 2) patterns.push(`${highIntensity.length} días con intensidad emocional alta (4-5/5)`);
+  const angry = diary.filter(e=>['Enfadado','Frustrado'].includes(e.label));
+  if (angry.length >= 2) patterns.push('La frustración y el enfado aparecen de forma recurrente');
+  const anxious = diary.filter(e=>e.label==='Ansioso');
+  if (anxious.length >= 2) patterns.push('La ansiedad se repite varios días');
+  const calm = diary.filter(e=>['Tranquilo','Contento'].includes(e.label));
+  if (calm.length >= 3) patterns.push('Varios días de calma y bienestar — tendencia positiva');
+  if (c.social?.includes('cuesta')) patterns.push('Las dificultades sociales pueden estar afectando el estado emocional');
+  if (patterns.length === 0) patterns.push('Semana con variedad emocional sin un patrón claro todavía');
+  return patterns;
+}
+
+function buildWhatWorked(diary, ach, c) {
+  const things = [];
+  if (ach.length > 0) things.push(`${ach.length} logro${ach.length>1?'s':''} registrado${ach.length>1?'s':''} esta semana`);
+  const calm = diary.filter(e=>['Tranquilo','Contento'].includes(e.label));
+  if (calm.length > 0) things.push(`${calm.length} día${calm.length>1?'s':''} con estado emocional positivo`);
+  if (things.length === 0) things.push('Seguir registrando en el diario para identificar qué funciona');
+  return things;
+}
+
+function buildNeedsAttention(diary, c) {
+  const attention = [];
+  const highDays = diary.filter(e=>e.intensity>=4);
+  if (highDays.length >= 3) attention.push('Alta frecuencia de intensidad emocional elevada — puede necesitar más herramientas de regulación');
+  if (c.bullying==='Sí, actualmente') attention.push('Situación de bullying activa — requiere seguimiento continuo con el colegio');
+  if (c.psicologo==='No' && highDays.length >= 3) attention.push('Considera iniciar apoyo psicológico dado el nivel de intensidad emocional');
+  if (attention.length === 0) attention.push('Sin alertas destacadas esta semana');
+  return attention;
+}
+
+function buildRecommendations(diary, ach, c, convs) {
+  const recs = [];
+  if (diary.length < 3) recs.push('Registrar el estado emocional cada día — incluso con una sola emoción ya es suficiente');
+  if (ach.length === 0) recs.push('Anotar al menos un momento positivo de la semana en "Logros"');
+  if (c.social?.includes('cuesta')) recs.push('Buscar una actividad extraescolar basada en sus intereses para facilitar conexiones sociales');
+  recs.push('Mantener las conversaciones en frío para reforzar los límites y consecuencias pactadas');
+  if (recs.length < 3) recs.push('Dedicar 5 minutos al día a una conversación sin agenda con ' + c.nombre);
+  return recs.slice(0,3);
+}
+
+function buildMessage(p, c, diary, ach) {
+  const nombre = p.nombre || p.rol;
+  const childName = c.nombre;
+  if (diary.length === 0 && ach.length === 0) {
+    return `${nombre}, el hecho de que estés aquí, usando esta herramienta y buscando cómo entender mejor a ${childName}, ya dice muchísimo de ti como padre/madre. Esta semana empieza a registrar — un pequeño gesto diario marca una gran diferencia. Estoy aquí siempre que me necesites. 🌿`;
+  }
+  const hasGoodDays = diary.some(e=>['Contento','Tranquilo'].includes(e.label));
+  if (hasGoodDays) {
+    return `${nombre}, esta semana ha habido momentos difíciles pero también días buenos con ${childName}. Eso importa mucho — cada día tranquilo es una semilla. Sigue confiando en el proceso y en ti. Estoy aquí. 🌿`;
+  }
+  return `${nombre}, ha sido una semana intensa. Que hayas estado presente y buscando herramientas para ayudar a ${childName} es lo más importante que puedes hacer. No tienes que hacerlo perfecto — tienes que seguir intentándolo. Y lo estás haciendo. 🌿`;
+}
+
+function downloadReportPDF() {
+  if (!lastReport) return;
+  const c = activeChild, p = activeParent;
+  const r = lastReport;
+  const d = r._generated ? new Date(r._generated) : new Date();
+  const dateStr = d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+  const weekStart = new Date(d); weekStart.setDate(d.getDate()-6);
+  const weekStr = `${weekStart.toLocaleDateString('es-ES',{day:'numeric',month:'long'})} – ${d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}`;
+
+  const sectionHTML = (icon, title, body) => `
+    <div class="section">
+      <div class="section-title">${icon} ${title}</div>
+      <div class="section-body">${body}</div>
+    </div>`;
+
+  const listHTML = arr => arr && arr.length
+    ? `<ul>${arr.map(i=>`<li>${i}</li>`).join('')}</ul>`
+    : '<p style="color:#999">Sin datos esta semana</p>';
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Noa · ${c.nombre} · ${dateStr}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@300;600&family=DM+Sans:wght@300;400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; font-weight: 300; color: #1a1815; background: white; padding: 40px; max-width: 760px; margin: 0 auto; }
+  
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #e8956d; }
+  .header-left h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 28px; color: #1a1815; margin-bottom: 4px; }
+  .header-left .subtitle { font-size: 14px; color: #8a8480; }
+  .header-right { text-align: right; }
+  .noa-badge { background: #e8956d; color: white; font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
+  .header-right .period { font-size: 12px; color: #8a8480; }
+
+  .child-info { background: #faf8f6; border: 1px solid #e8e0d8; border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; display: flex; gap: 20px; flex-wrap: wrap; }
+  .ci-item { }
+  .ci-label { font-size: 11px; color: #8a8480; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .ci-value { font-size: 14px; color: #1a1815; font-weight: 500; }
+
+  .summary-box { background: linear-gradient(135deg, #fdf0e8, #faf8f6); border: 1px solid #e8956d; border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+  .summary-box p { font-size: 15px; line-height: 1.7; color: #2a2220; }
+
+  .sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .section { background: #faf8f6; border: 1px solid #e8e0d8; border-radius: 12px; padding: 16px; break-inside: avoid; }
+  .section.full { grid-column: 1 / -1; }
+  .section-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: #e8956d; margin-bottom: 10px; }
+  .section-body { font-size: 13.5px; line-height: 1.6; color: #3a3530; }
+  .section-body ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .section-body ul li { padding-left: 14px; position: relative; }
+  .section-body ul li::before { content: '›'; position: absolute; left: 0; color: #e8956d; }
+  .section-body p { margin: 0; }
+
+  .message-box { background: #1a1815; border-radius: 12px; padding: 20px; margin-top: 8px; }
+  .message-box .mb-label { font-size: 11px; color: #e8956d; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .message-box p { font-size: 14px; line-height: 1.7; color: #f0ebe4; font-style: italic; }
+
+  .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e8e0d8; display: flex; justify-content: space-between; align-items: center; }
+  .footer .fl { font-size: 12px; color: #8a8480; }
+  .footer .fr { font-size: 11px; color: #c0b8b0; }
+
+  .report-list-card{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;}
+.report-list-card:hover{border-color:var(--accent);}
+.rlc-icon{font-size:24px;flex-shrink:0;}
+.rlc-info{flex:1;min-width:0;}
+.rlc-date{font-size:13px;font-weight:500;color:var(--text);}
+.rlc-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.rlc-actions{display:flex;gap:6px;flex-shrink:0;}
+.rlc-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:var(--muted);transition:all .2s;white-space:nowrap;}
+.rlc-btn:hover{border-color:var(--accent);color:var(--accent);}
+.rlc-btn.del:hover{border-color:#e86d6d;color:#e86d6d;}
+.report-detail{background:var(--surface2);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.report-detail-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.report-detail-header h3{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--text);}
+.rdh-actions{display:flex;gap:8px;}
+.report-detail-body{padding:16px;display:flex;flex-direction:column;gap:12px;}
+
+  @media print {
+    body { padding: 20px; }
+    .sections-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Informe Semanal</h1>
+    <div class="subtitle">Seguimiento emocional y conductual</div>
+  </div>
+  <div class="header-right">
+    <div class="noa-badge">🌿 Noa</div>
+    <div class="period">${weekStr}</div>
+  </div>
+</div>
+
+<div class="child-info">
+  <div class="ci-item"><div class="ci-label">Nombre</div><div class="ci-value">${c.nombre}</div></div>
+  <div class="ci-item"><div class="ci-label">Edad</div><div class="ci-value">${c.edad}</div></div>
+  <div class="ci-item"><div class="ci-label">Diagnóstico</div><div class="ci-value">${c.diagnostico}</div></div>
+  ${c.doble && c.doble !== 'ninguna' ? `<div class="ci-item"><div class="ci-label">Doble excepcionalidad</div><div class="ci-value">${c.doble}</div></div>` : ''}
+  <div class="ci-item"><div class="ci-label">Elaborado para</div><div class="ci-value">${p.nombre||p.rol}</div></div>
+  <div class="ci-item"><div class="ci-label">Fecha</div><div class="ci-value">${dateStr}</div></div>
+</div>
+
+<div class="summary-box">
+  <p>${r.resumen_general || ''}</p>
+</div>
+
+<div class="sections-grid">
+  ${sectionHTML('💭', 'Estado emocional', `<p>${r.estado_emocional||''}</p>`)}
+  ${sectionHTML('🔍', 'Situaciones trabajadas', listHTML(r.situaciones_trabajadas))}
+  ${sectionHTML('🔄', 'Patrones detectados', listHTML(r.patrones_detectados))}
+  ${sectionHTML('✅', 'Qué ha funcionado', listHTML(r.que_ha_funcionado))}
+  ${sectionHTML('👀', 'Merece atención', listHTML(r.merece_atencion))}
+  ${sectionHTML('⭐', 'Logros de la semana', listHTML(r.logros_semana))}
+  <div class="section full">
+    ${sectionHTML('🗓️', 'Recomendaciones para la próxima semana', listHTML(r.recomendaciones))}
+  </div>
+</div>
+
+<div class="message-box">
+  <div class="mb-label">Mensaje de Noa</div>
+  <p>${r.mensaje_final||''}</p>
+</div>
+
+<div class="footer">
+  <div class="fl">🌿 Generado por Noa · Coach AACC</div>
+  <div class="fr">${dateStr}</div>
+</div>
+<div class="confidential">Documento de uso personal y profesional · Información confidencial</div>
+
+<script>window.onload=()=>{window.print();}<\/script>
+</body>
+</html>`;
+
+  // Encode properly handling Spanish characters
+  const bytes = new TextEncoder().encode(html);
+  const binString = Array.from(bytes, b => String.fromCodePoint(b)).join('');
+  const base64 = btoa(binString);
+  const a = document.createElement('a');
+  a.href = 'data:text/html;base64,' + base64;
+  a.download = `Informe_Noa_${c.nombre}_${d.toISOString().slice(0,10)}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Auto-generate on Sundays
+function checkSundayReport() {
+  if (new Date().getDay() === 0) {
+    const lastGenKey = `noa_last_report_${activeChildIdx}`;
+    const lastGen = localStorage.getItem(lastGenKey);
+    const today = new Date().toDateString();
+    if (lastGen !== today) {
+      localStorage.setItem(lastGenKey, today);
+      // Will generate when user opens report tab
+    }
+  }
+}
+</script>
+</body>
+</html>
