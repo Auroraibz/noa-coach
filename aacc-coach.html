@@ -1229,7 +1229,7 @@ let activeChild     = null;
 let conversations = JSON.parse(localStorage.getItem('noa_convos') || '{}');
 
 let pStep = 1, cStep = 1;
-const P_STEPS = 7, C_STEPS = 9;
+const P_STEPS = 7, C_STEPS = 8;
 
 let pRadio = {}, pCheck = {}, pPhoto = null, editingParentIdx = null;
 let cRadio = {}, cCheck = {}, cPhoto = null, editingChildIdx = null;
@@ -1666,7 +1666,8 @@ function showCStep(n) {
 }
 
 function saveChild() {
-  const child = {
+  try {
+  let child = {
     nombre: document.getElementById('c-nombre').value.trim() || 'Sin nombre',
     edad: document.getElementById('c-edad').value || 'no especificada',
     sexo: cRadio['sexo'] || 'no especificado',
@@ -1687,6 +1688,9 @@ function saveChild() {
     extra: document.getElementById('c-extra').value.trim() || 'ninguna'
   };
 
+  const idx = editingChildIdx !== null ? editingChildIdx : children.length;
+  child = saveProfileFilesToChild(child, idx);
+
   if (editingChildIdx !== null) {
     children[editingChildIdx] = child;
     localStorage.setItem('noa_children', JSON.stringify(children));
@@ -1695,6 +1699,9 @@ function saveChild() {
     children.push(child);
     localStorage.setItem('noa_children', JSON.stringify(children));
     startChat(children.length - 1);
+  }
+  } catch(err) {
+    alert('Error al guardar: ' + err.message);
   }
 }
 
@@ -2096,14 +2103,38 @@ function clearAttachment() {
 
 function handleProfileFile(event) {
   const file = event.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const base64 = e.target.result.split(',')[1];
-    const isImage = file.type.startsWith('image/');
-    profileFiles.push({ base64, mediaType: file.type || 'application/pdf', name: file.name, isImage, src: e.target.result });
-    renderProfileFiles();
-  };
-  reader.readAsDataURL(file);
+  const isImage = file.type.startsWith('image/');
+  
+  if (isImage) {
+    // Compress image before storing
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX/w); w = MAX; }
+        else { w = Math.round(w * MAX/h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const src = canvas.toDataURL('image/jpeg', 0.7);
+      const base64 = src.split(',')[1];
+      profileFiles.push({ base64, mediaType: 'image/jpeg', name: file.name, isImage: true, src });
+      renderProfileFiles();
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  } else {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const base64 = e.target.result.split(',')[1];
+      profileFiles.push({ base64, mediaType: file.type, name: file.name, isImage: false, src: e.target.result });
+      renderProfileFiles();
+    };
+    reader.readAsDataURL(file);
+  }
   event.target.value = '';
 }
 
@@ -2122,11 +2153,15 @@ function renderProfileFiles() {
 function removeProfileFile(i) { profileFiles.splice(i,1); renderProfileFiles(); }
 
 // Save/load profile files in child profile
-function saveProfileFilesToChild(child) {
-  // Store only metadata (not base64 to avoid localStorage limits for now)
+function saveProfileFilesToChild(child, idx) {
+  const childIdx = idx !== undefined ? idx : activeChildIdx;
   child.profileFilesMeta = profileFiles.map(f => ({name: f.name, isImage: f.isImage}));
-  // Store base64 separately in sessionStorage (available during session)
-  try { sessionStorage.setItem('noa_profile_files_' + activeChildIdx, JSON.stringify(profileFiles.map(f => ({...f})))); } catch(e) {}
+  try { 
+    sessionStorage.setItem('noa_profile_files_' + childIdx, JSON.stringify(profileFiles.map(f => ({...f}))));
+  } catch(e) {
+    // If sessionStorage fails (large images), keep only metadata
+    console.warn('Profile files too large for sessionStorage');
+  }
   return child;
 }
 
