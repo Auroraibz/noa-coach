@@ -1218,7 +1218,7 @@ textarea.form-input{resize:none;min-height:80px;line-height:1.5;font-size:14px;}
 <script>
 // ══ STATE ══
 let parents   = JSON.parse(localStorage.getItem('noa_parents') || '[]');
-let children  = JSON.parse(localStorage.getItem('noa_children') || '[]');
+let children  = (() => { try { return JSON.parse(localStorage.getItem('noa_children') || '[]'); } catch(e) { return []; } })();
 
 let activeParentIdx = null;
 let activeChildIdx  = null;
@@ -1229,7 +1229,7 @@ let activeChild     = null;
 let conversations = JSON.parse(localStorage.getItem('noa_convos') || '{}');
 
 let pStep = 1, cStep = 1;
-const P_STEPS = 7, C_STEPS = 8;
+const P_STEPS = 7, C_STEPS = 9;
 
 let pRadio = {}, pCheck = {}, pPhoto = null, editingParentIdx = null;
 let cRadio = {}, cCheck = {}, cPhoto = null, editingChildIdx = null;
@@ -1693,11 +1693,15 @@ function saveChild() {
 
   if (editingChildIdx !== null) {
     children[editingChildIdx] = child;
-    localStorage.setItem('noa_children', JSON.stringify(children));
+    // Save without photo base64 to avoid localStorage quota
+    const toSave = children.map(c => ({...c, photo: c.photo ? 'has_photo' : null}));
+    try { localStorage.setItem('noa_children', JSON.stringify(toSave)); } catch(e) {}
+    // Keep full photo in memory
     startChat(editingChildIdx);
   } else {
     children.push(child);
-    localStorage.setItem('noa_children', JSON.stringify(children));
+    const toSave = children.map(c => ({...c, photo: c.photo ? 'has_photo' : null}));
+    try { localStorage.setItem('noa_children', JSON.stringify(toSave)); } catch(e) {}
     startChat(children.length - 1);
   }
   } catch(err) {
