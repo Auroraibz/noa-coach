@@ -1376,7 +1376,13 @@ function enterAsParent(i) {
   activeParent = parents[i];
   renderChildSelector();
   showScreen('child-selector');
-  if (children.length === 0) newChild();
+  // If parent has a remembered child, go straight to chat
+  const lastChild = parents[i].lastChildIdx;
+  if (children.length > 0 && lastChild !== undefined && children[lastChild]) {
+    startChat(lastChild);
+  } else if (children.length === 0) {
+    newChild();
+  }
 }
 
 function goWho() { 
@@ -1683,12 +1689,13 @@ function saveChild() {
 
   if (editingChildIdx !== null) {
     children[editingChildIdx] = child;
+    localStorage.setItem('noa_children', JSON.stringify(children));
     startChat(editingChildIdx);
   } else {
     children.push(child);
+    localStorage.setItem('noa_children', JSON.stringify(children));
     startChat(children.length - 1);
   }
-  localStorage.setItem('noa_children', JSON.stringify(children));
 }
 
 // ══ CHAT ══
@@ -1702,6 +1709,9 @@ function convoKey(parentIdx, childIdx) {
 function startChat(childIdx) {
   activeChildIdx = childIdx;
   activeChild = children[childIdx];
+  // Remember last child for this parent
+  parents[activeParentIdx].lastChildIdx = childIdx;
+  localStorage.setItem('noa_parents', JSON.stringify(parents));
   loadProfileFilesForChild(childIdx);
   const key = convoKey(activeParentIdx, childIdx);
   // load history
