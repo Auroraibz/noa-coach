@@ -1,0 +1,544 @@
+{
+  "name": "NOA - Reciclaje de Contenido Publicado",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute",
+              "minute": 10
+            }
+          ]
+        },
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Videos",
+        "triggerField": "recycle_flag",
+        "additionalFields": {}
+      },
+      "id": "trigger-video-publicado",
+      "name": "Trigger: Video con Recycle Flag",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Polling cada 10 minutos en tabla Videos. Se activa cuando cambia recycle_flag. Placeholder: AIRTABLE_BASE_ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-publicado",
+              "leftValue": "={{ $json.fields.estado }}",
+              "rightValue": "PUBLICADO",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "check-recycle-flag",
+              "leftValue": "={{ $json.fields.recycle_flag }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-publicado-y-recycle",
+      "name": "IF: Publicado y Recycle Flag Activo",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [460, 300],
+      "notes": "Solo procesa videos con estado=PUBLICADO Y recycle_flag=true. Doble condicion de seguridad."
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Videos",
+        "id": "={{ $json.id }}",
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-obtener-video-completo",
+      "name": "Airtable: Obtener Video Completo",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [680, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Obtiene todos los datos del video publicado incluyendo metricas de performance."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar contexto completo del video para reciclaje\nconst item = $input.first();\nconst fields = item.json.fields || item.json;\n\nconst videoId = item.json.id || 'ID_DESCONOCIDO';\n\n// Datos del video original\nconst titulo = fields.titulo || 'Sin titulo';\nconst hook = fields.hook || '';\nconst guion = fields.guion || fields.cuerpo || '';\nconst cta = fields.cta || '';\nconst pilar = fields.pilar || 'Herramientas';\nconst formato = fields.formato || 'Video corto';\nconst hashtags = fields.hashtags || '';\nconst plataforma = fields.plataforma || 'Instagram/TikTok';\nconst fecha_publicacion = fields.fecha_publicacion || '';\n\n// Metricas de performance (si existen)\nconst views = fields.views || fields.reproducciones || 0;\nconst likes = fields.likes || 0;\nconst comentarios = fields.comentarios || 0;\nconst shares = fields.shares || fields.compartidos || 0;\nconst saves = fields.saves || fields.guardados || 0;\nconst reach = fields.reach || fields.alcance || 0;\nconst engagementRate = fields.engagement_rate || (views > 0 ? ((likes + comentarios + shares) / views * 100).toFixed(2) : 0);\nconst recycle_count = fields.recycle_count || 0;\n\n// Analisis de performance para el prompt\nconst performanceLevel = engagementRate > 5 ? 'MUY ALTO' :\n  engagementRate > 3 ? 'ALTO' :\n  engagementRate > 1 ? 'MEDIO' : 'BAJO';\n\nconst prompt = `Eres el estratega de contenido de NOA, una aplicacion para padres de adolescentes con Altas Capacidades Cognitivas (AACC).\n\nTu tarea es reciclar y reutilizar el siguiente contenido de video EXITOSO para generar multiples formatos derivados.\n\n--- DATOS DEL VIDEO ORIGINAL ---\nTitulo: ${titulo}\nHook: ${hook}\nGuion: ${guion}\nCTA: ${cta}\nPilar: ${pilar}\nFormato original: ${formato}\nPlataforma: ${plataforma}\nFecha publicacion: ${fecha_publicacion}\n\n--- METRICAS DE PERFORMANCE ---\nReproduccion: ${views.toLocaleString()} views\nLikes: ${likes.toLocaleString()}\nComentarios: ${comentarios}\nCompartidos: ${shares}\nGuardados: ${saves}\nAlcance: ${reach.toLocaleString()}\nEngagement rate: ${engagementRate}%\nNivel de performance: ${performanceLevel}\nVeces reciclado anteriormente: ${recycle_count}\n\n--- INSTRUCCIONES ---\nBasandote en el contenido y su nivel de performance (${performanceLevel}), genera exactamente 8 formatos de contenido reciclado:\n\n1. HOOK_1: Nuevo gancho angulo emocional diferente al original\n2. HOOK_2: Nuevo gancho angulo practico/herramienta\n3. HOOK_3: Nuevo gancho angulo estadistica o dato sorprendente\n4. GUION_VARIACION_1: Guion completo reformulado (mismo mensaje, nueva estructura)\n5. GUION_VARIACION_2: Guion con caso de uso especifico diferente\n6. GUION_VARIACION_3: Version mas corta (30 segundos max)\n7. CARRUSEL: Estructura de 5-7 diapositivas para carrusel de Instagram\n8. POST_EMAIL: Fragmento adaptado para email newsletter (intro + cuerpo + CTA)\n9. HISTORIA: Adaptacion para Instagram Stories (3 pantallas)\n10. POST_TEXTO: Version solo texto para LinkedIn o feed sin video\n11. GUION_ANUNCIO: Version corta para anuncio de pago (15 segundos)\n12. FAQ: 3 preguntas frecuentes derivadas del tema con respuestas\n\nResponde UNICAMENTE con un JSON valido:\n{\n  \"video_id_original\": \"${videoId}\",\n  \"titulo_original\": \"${titulo}\",\n  \"nivel_performance\": \"${performanceLevel}\",\n  \"contenidos_reciclados\": [\n    {\n      \"tipo\": \"HOOK_1\",\n      \"variacion_numero\": 1,\n      \"titulo\": \"Titulo descriptivo\",\n      \"contenido\": \"El contenido completo\",\n      \"plataforma_objetivo\": \"Instagram/TikTok\",\n      \"longitud_estimada_seg\": 0,\n      \"notas\": \"Instrucciones de uso\"\n    }\n  ]\n}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    video_id: videoId,\n    titulo: titulo,\n    pilar: pilar,\n    formato: formato,\n    metricas: {\n      views: views,\n      likes: likes,\n      comentarios: comentarios,\n      shares: shares,\n      saves: saves,\n      engagement_rate: engagementRate,\n      performance_level: performanceLevel\n    },\n    recycle_count_actual: recycle_count,\n    campos_originales: fields\n  }\n}];"
+      },
+      "id": "code-preparar-prompt-reciclaje",
+      "name": "Code: Preparar Prompt Reciclaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 240],
+      "notes": "Construye el prompt con metricas de performance para que Claude genere contenido reciclado optimo."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 8192,\n  \"temperature\": 1,\n  \"system\": \"Eres el estratega de contenido de NOA. Generas contenido reciclado de alta calidad. Siempre respondes con JSON valido y perfectamente estructurado, sin texto adicional fuera del JSON.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "http-claude-reciclaje",
+      "name": "HTTP: Claude Generar Reciclaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 240],
+      "notes": "Llama a Claude Opus para generar 12 formatos de contenido reciclado. Placeholder: ANTHROPIC_API_KEY"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear contenidos reciclados de la respuesta de Claude\nconst claudeResponse = $input.first().json;\nconst contexto = $('Code: Preparar Prompt Reciclaje').first().json;\n\nif (!claudeResponse.content || !claudeResponse.content[0] || !claudeResponse.content[0].text) {\n  throw new Error('Respuesta de Claude vacia o invalida para reciclaje');\n}\n\nconst rawText = claudeResponse.content[0].text;\n\nlet jsonString = rawText;\nconst jsonMatch = rawText.match(/\\{[\\s\\S]*\\}/);\nif (jsonMatch) {\n  jsonString = jsonMatch[0];\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(jsonString);\n} catch (e) {\n  throw new Error(`Error parseando JSON de reciclaje: ${e.message}\\nPrimeros 500 chars: ${rawText.substring(0, 500)}`);\n}\n\nif (!parsed.contenidos_reciclados || !Array.isArray(parsed.contenidos_reciclados)) {\n  throw new Error('La respuesta no contiene el array contenidos_reciclados');\n}\n\nconst fechaHoy = new Date().toISOString().split('T')[0];\n\n// Mapeo de tipo a categoria para Airtable\nconst CATEGORIAS = {\n  'HOOK_1': 'HOOK',\n  'HOOK_2': 'HOOK',\n  'HOOK_3': 'HOOK',\n  'GUION_VARIACION_1': 'GUION_VARIACION',\n  'GUION_VARIACION_2': 'GUION_VARIACION',\n  'GUION_VARIACION_3': 'GUION_VARIACION',\n  'CARRUSEL': 'CARRUSEL',\n  'POST_EMAIL': 'EMAIL',\n  'HISTORIA': 'HISTORIA',\n  'POST_TEXTO': 'POST_TEXTO',\n  'GUION_ANUNCIO': 'ANUNCIO',\n  'FAQ': 'FAQ'\n};\n\nconst contenidosFormateados = parsed.contenidos_reciclados.map((contenido, index) => ({\n  json: {\n    fields: {\n      video_id_original: contexto.video_id,\n      titulo_original: contexto.titulo,\n      tipo: contenido.tipo || `RECICLADO_${index + 1}`,\n      categoria: CATEGORIAS[contenido.tipo] || 'OTRO',\n      variacion_numero: contenido.variacion_numero || index + 1,\n      titulo: contenido.titulo || `${contenido.tipo} - ${contexto.titulo}`,\n      contenido: contenido.contenido || '',\n      plataforma_objetivo: contenido.plataforma_objetivo || 'Instagram/TikTok',\n      longitud_estimada_seg: contenido.longitud_estimada_seg || 0,\n      notas: contenido.notas || '',\n      pilar: contexto.pilar,\n      estado: 'BORRADOR_RECICLADO',\n      fecha_creacion: fechaHoy,\n      performance_original: contexto.metricas.performance_level,\n      engagement_original: contexto.metricas.engagement_rate,\n      modelo_ia: 'claude-opus-4-5',\n      tipo_contenido: 'RECICLADO'\n    },\n    _video_id: contexto.video_id,\n    _recycle_count_actual: contexto.recycle_count_actual\n  }\n}));\n\nreturn contenidosFormateados;"
+      },
+      "id": "code-parsear-reciclados",
+      "name": "Code: Parsear Contenidos Reciclados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 240],
+      "notes": "Parsea los 12 formatos reciclados y los formatea para crear registros en Airtable."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Separar los contenidos reciclados por tipo para guardar en tablas especificas\nconst items = $input.all();\n\n// Clasificar cada item\nconst hooks = items.filter(i => (i.json.fields.categoria || '') === 'HOOK');\nconst guionesVariacion = items.filter(i => (i.json.fields.categoria || '') === 'GUION_VARIACION');\nconst carrusel = items.filter(i => (i.json.fields.categoria || '') === 'CARRUSEL');\nconst email = items.filter(i => (i.json.fields.categoria || '') === 'EMAIL');\nconst historia = items.filter(i => (i.json.fields.categoria || '') === 'HISTORIA');\nconst postTexto = items.filter(i => (i.json.fields.categoria || '') === 'POST_TEXTO');\nconst anuncio = items.filter(i => (i.json.fields.categoria || '') === 'ANUNCIO');\nconst faq = items.filter(i => (i.json.fields.categoria || '') === 'FAQ');\n\nconst videoId = items[0]?.json?._video_id || 'ID_DESCONOCIDO';\nconst recycle_count_actual = items[0]?.json?._recycle_count_actual || 0;\n\nreturn [{\n  json: {\n    todos_los_contenidos: items.map(i => i.json.fields),\n    total_contenidos: items.length,\n    resumen_por_tipo: {\n      hooks: hooks.length,\n      guiones_variacion: guionesVariacion.length,\n      carrusel: carrusel.length,\n      email: email.length,\n      historia: historia.length,\n      post_texto: postTexto.length,\n      anuncio: anuncio.length,\n      faq: faq.length\n    },\n    video_id: videoId,\n    nuevo_recycle_count: recycle_count_actual + 1,\n    fecha_reciclaje: new Date().toISOString().split('T')[0]\n  }\n}];"
+      },
+      "id": "code-agrupar-por-tipo",
+      "name": "Code: Agrupar por Tipo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 240],
+      "notes": "Agrupa los contenidos reciclados por categoria para crear registros en Airtable y preparar el resumen."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Separar y volver a emitir cada contenido individualmente para guardar en Airtable\nconst grouped = $input.first().json;\nconst todos = grouped.todos_los_contenidos || [];\n\n// Devolver cada contenido como item separado para el nodo de Airtable (que itera sobre items)\nreturn todos.map(contenido => ({\n  json: {\n    fields: contenido,\n    _video_id: grouped.video_id,\n    _nuevo_recycle_count: grouped.nuevo_recycle_count\n  }\n}));"
+      },
+      "id": "code-separar-para-airtable",
+      "name": "Code: Separar Items para Airtable",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 240],
+      "notes": "Re-emite cada contenido reciclado como item individual para que el nodo Airtable los procese en loop."
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Contenido_Reciclado",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "video_id_original": "={{ $json.fields.video_id_original }}",
+            "titulo_original": "={{ $json.fields.titulo_original }}",
+            "tipo": "={{ $json.fields.tipo }}",
+            "categoria": "={{ $json.fields.categoria }}",
+            "variacion_numero": "={{ $json.fields.variacion_numero }}",
+            "titulo": "={{ $json.fields.titulo }}",
+            "contenido": "={{ $json.fields.contenido }}",
+            "plataforma_objetivo": "={{ $json.fields.plataforma_objetivo }}",
+            "longitud_estimada_seg": "={{ $json.fields.longitud_estimada_seg }}",
+            "notas": "={{ $json.fields.notas }}",
+            "pilar": "={{ $json.fields.pilar }}",
+            "estado": "={{ $json.fields.estado }}",
+            "fecha_creacion": "={{ $json.fields.fecha_creacion }}",
+            "performance_original": "={{ $json.fields.performance_original }}",
+            "engagement_original": "={{ $json.fields.engagement_original }}",
+            "modelo_ia": "={{ $json.fields.modelo_ia }}",
+            "tipo_contenido": "={{ $json.fields.tipo_contenido }}"
+          }
+        },
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-crear-contenido-reciclado",
+      "name": "Airtable: Crear Contenido Reciclado",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [2000, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Crea un registro en la tabla Contenido_Reciclado para cada formato generado. Se ejecuta N veces (1 por cada contenido)."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agregar todos los registros creados para el paso siguiente\nconst creados = $input.all();\nconst primerItem = creados[0];\n\nreturn [{\n  json: {\n    total_creados: creados.length,\n    video_id: primerItem?.json?._video_id || primerItem?.json?.fields?.video_id_original || 'ID_DESCONOCIDO',\n    nuevo_recycle_count: primerItem?.json?._nuevo_recycle_count || 1,\n    ids_creados: creados.map(c => c.json.id).filter(Boolean)\n  }\n}];"
+      },
+      "id": "code-agregar-creados",
+      "name": "Code: Agregar Creados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 240],
+      "notes": "Agrega todos los registros creados en Airtable para preparar la actualizacion del video original."
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Videos",
+        "id": "={{ $json.video_id }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "recycle_count": "={{ $json.nuevo_recycle_count }}",
+            "ultima_fecha_reciclaje": "={{ new Date().toISOString().split('T')[0] }}",
+            "recycle_flag": false,
+            "contenidos_reciclados_ids": "={{ $json.ids_creados.join(',') }}"
+          }
+        },
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-actualizar-video-original",
+      "name": "Airtable: Actualizar Video Original",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [2440, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Actualiza el video original: incrementa recycle_count, registra fecha y desactiva recycle_flag para evitar procesamiento doble."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir resumen de reciclaje para notificacion\nconst actualizacion = $input.first();\nconst agregados = $('Code: Agregar Creados').first().json;\nconst contexto = $('Code: Preparar Prompt Reciclaje').first().json;\nconst agrupados = $('Code: Agrupar por Tipo').first().json;\n\nconst resumenTipos = Object.entries(agrupados.resumen_por_tipo || {})\n  .filter(([_, count]) => count > 0)\n  .map(([tipo, count]) => `• ${tipo.replace('_', ' ')}: ${count}`)\n  .join('\\n');\n\nconst mensaje = {\n  text: `*NOA - Reciclaje de Contenido Completado*`,\n  blocks: [\n    {\n      type: 'header',\n      text: {\n        type: 'plain_text',\n        text: 'Contenido Reciclado Generado'\n      }\n    },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Video Original:* ${contexto.titulo}` },\n        { type: 'mrkdwn', text: `*Performance:* ${contexto.metricas.performance_level}` },\n        { type: 'mrkdwn', text: `*Engagement:* ${contexto.metricas.engagement_rate}%` },\n        { type: 'mrkdwn', text: `*Veces reciclado:* ${agregados.nuevo_recycle_count}` }\n      ]\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Total generado:* ${agregados.total_creados} formatos\\n\\n*Por tipo:*\\n${resumenTipos}`\n      }\n    },\n    {\n      type: 'actions',\n      elements: [\n        {\n          type: 'button',\n          text: { type: 'plain_text', text: 'Ver Contenido Reciclado' },\n          url: `https://airtable.com/${process.env.AIRTABLE_BASE_ID || 'BASE_ID'}/Contenido_Reciclado`,\n          style: 'primary'\n        }\n      ]\n    }\n  ]\n};\n\nreturn [{ json: mensaje }];"
+      },
+      "id": "code-construir-notificacion-reciclaje",
+      "name": "Code: Construir Notificacion Reciclaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 240],
+      "notes": "Construye el mensaje de notificacion con el resumen completo del reciclaje."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-reciclaje-completo",
+      "name": "HTTP: Slack Reciclaje Completo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 180],
+      "notes": "Notifica al equipo en Slack que el reciclaje fue completado con resumen de contenidos generados."
+    },
+    {
+      "parameters": {
+        "fromEmail": "noa-content@ejemplo.com",
+        "toEmail": "={{ $env.NOTIFICATION_EMAIL }}",
+        "subject": "NOA - Reciclaje completado: {{ $('Code: Preparar Prompt Reciclaje').first().json.titulo }}",
+        "emailFormat": "html",
+        "html": "<h2>NOA Content - Reciclaje Completado</h2><p><strong>Video original:</strong> {{ $('Code: Preparar Prompt Reciclaje').first().json.titulo }}</p><p><strong>Total de formatos generados:</strong> {{ $('Code: Agregar Creados').first().json.total_creados }}</p><p>Todos los contenidos estan en estado BORRADOR_RECICLADO y listos para revision.</p><p><a href='https://airtable.com/{{ $env.AIRTABLE_BASE_ID }}/Contenido_Reciclado'>Ver en Airtable</a></p>"
+      },
+      "id": "email-reciclaje-completo",
+      "name": "Email: Reciclaje Completo",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2880, 340],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-cred-id",
+          "name": "SMTP - NOA Notifications"
+        }
+      },
+      "notes": "Envia email con el resumen del reciclaje completado."
+    },
+    {
+      "parameters": {
+        "operation": "noOp"
+      },
+      "id": "noop-no-cumple-condicion",
+      "name": "NoOp: No Cumple Condicion",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [680, 420],
+      "notes": "Videos que no cumplen ambas condiciones (PUBLICADO + recycle_flag=true) se descartan aqui."
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first();\n\nconst errorInfo = {\n  workflow: 'NOA - Reciclaje de Contenido',\n  timestamp: new Date().toISOString(),\n  error_message: error.json.message || error.json.error || JSON.stringify(error.json),\n  context: 'Error en pipeline de reciclaje'\n};\n\nconsole.error('Error en workflow Reciclaje:', JSON.stringify(errorInfo));\n\nreturn [{ json: errorInfo }];"
+      },
+      "id": "code-error-handler-reciclaje",
+      "name": "Code: Error Handler Reciclaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 480],
+      "notes": "Captura y registra errores en el pipeline de reciclaje de contenido."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"*ERROR en NOA - Reciclaje de Contenido*\\n*Error:* {{ $json.error_message }}\\n*Hora:* {{ $json.timestamp }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-error-reciclaje",
+      "name": "HTTP: Slack Error Reciclaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 480],
+      "notes": "Envia alerta de error al canal de Slack para el pipeline de reciclaje."
+    }
+  ],
+  "connections": {
+    "Trigger: Video con Recycle Flag": {
+      "main": [
+        [
+          {
+            "node": "IF: Publicado y Recycle Flag Activo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Publicado y Recycle Flag Activo": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Obtener Video Completo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: No Cumple Condicion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Obtener Video Completo": {
+      "main": [
+        [
+          {
+            "node": "Code: Preparar Prompt Reciclaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Preparar Prompt Reciclaje": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Claude Generar Reciclaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Claude Generar Reciclaje": {
+      "main": [
+        [
+          {
+            "node": "Code: Parsear Contenidos Reciclados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parsear Contenidos Reciclados": {
+      "main": [
+        [
+          {
+            "node": "Code: Agrupar por Tipo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Agrupar por Tipo": {
+      "main": [
+        [
+          {
+            "node": "Code: Separar Items para Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Separar Items para Airtable": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Crear Contenido Reciclado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Crear Contenido Reciclado": {
+      "main": [
+        [
+          {
+            "node": "Code: Agregar Creados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Agregar Creados": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Actualizar Video Original",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Actualizar Video Original": {
+      "main": [
+        [
+          {
+            "node": "Code: Construir Notificacion Reciclaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Construir Notificacion Reciclaje": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack Reciclaje Completo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email: Reciclaje Completo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Error Handler Reciclaje": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack Error Reciclaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "timezone": "Europe/Madrid"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "tag-noa-content",
+      "name": "NOA Content System"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "v1.0.0",
+  "meta": {
+    "instanceId": "noa-coach-instance",
+    "templateCredsSetupCompleted": false
+  },
+  "id": "workflow-reciclaje-contenido",
+  "active": false
+}

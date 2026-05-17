@@ -1,0 +1,467 @@
+{
+  "name": "NOA - Guiones desde Ideas Aprobadas",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute",
+              "minute": 5
+            }
+          ]
+        },
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Ideas",
+        "triggerField": "estado",
+        "additionalFields": {}
+      },
+      "id": "trigger-airtable-idea-aprobada",
+      "name": "Trigger: Idea Aprobada en Airtable",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Se activa cuando se detecta un nuevo registro o cambio en la tabla Ideas. Pooling cada 5 minutos. Placeholder: AIRTABLE_BASE_ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-estado-aprobado",
+              "leftValue": "={{ $json.fields.estado }}",
+              "rightValue": "APROBADA",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-estado-aprobada",
+      "name": "IF: Estado es APROBADA",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [460, 300],
+      "notes": "Filtra solo las ideas cuyo campo 'estado' es exactamente 'APROBADA'. Las demas se descartan."
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Ideas",
+        "id": "={{ $json.id }}",
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-obtener-idea-completa",
+      "name": "Airtable: Obtener Idea Completa",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [680, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Obtiene todos los campos de la idea aprobada para construir el prompt de guion."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar prompt para generar 3 variaciones de guion\nconst item = $input.first();\nconst fields = item.json.fields || item.json;\n\nconst ideaId = item.json.id || 'ID_DESCONOCIDO';\nconst titulo = fields.titulo || 'Sin titulo';\nconst hook = fields.hook || 'Sin hook';\nconst concepto = fields.concepto || 'Sin concepto';\nconst formato = fields.formato || 'Video corto';\nconst pilar = fields.pilar || 'Herramientas';\nconst anguloEmocional = fields.angulo_emocional || '';\nconst palabrasClave = fields.palabras_clave || '';\nconst duracionEstimada = fields.duracion_estimada || '60-90 segundos';\nconst notas = fields.notas_produccion || '';\n\nconst prompt = `Eres el guionista principal de NOA, una aplicacion para padres de adolescentes con Altas Capacidades Cognitivas (AACC).\n\nTu tarea es crear 3 variaciones de guion completo para el siguiente contenido aprobado:\n\n---\nTITULO: ${titulo}\nHOOK INICIAL: ${hook}\nCONCEPTO: ${concepto}\nFORMATO: ${formato}\nPILAR EMOCIONAL: ${pilar}\nANGULO EMOCIONAL: ${anguloEmocional}\nPALABRAS CLAVE: ${palabrasClave}\nDURACION ESTIMADA: ${duracionEstimada}\nNOTAS ADICIONALES: ${notas}\n---\n\nPAUTAS DE ESCRITURA NOA:\n- Tono: Cercano, empatico, como un amigo que tambien es experto\n- Evitar: Tecnicismos sin explicar, tono condescendiente, soluciones simplistas\n- Incluir: Validacion emocional, datos concretos cuando aplique, llamada a la accion clara\n- Estructura para video: Hook (3 seg) → Promesa (5 seg) → Desarrollo (40-60 seg) → CTA (5-10 seg)\n- Usar 'tu' para dirigirse al padre/madre\n- Los adolescentes con AACC no son 'superdotados' en el sentido elitista; son ninos con necesidades especificas\n\nVARIACION 1 - EMOCIONAL: Enfocada en la conexion emocional y validacion del padre/madre\nVARIACION 2 - PRACTICA: Enfocada en herramientas y pasos accionables\nVARIACION 3 - NARRATIVA: Usa una historia o caso real (anonimizado) para ilustrar el concepto\n\nResponde UNICAMENTE con un JSON valido con esta estructura:\n{\n  \"idea_id\": \"${ideaId}\",\n  \"titulo_original\": \"${titulo}\",\n  \"guiones\": [\n    {\n      \"variacion\": \"EMOCIONAL\",\n      \"titulo_guion\": \"Titulo especifico para esta variacion\",\n      \"hook\": \"Texto exacto del hook (primeros 3-5 segundos)\",\n      \"cuerpo\": \"Texto completo del guion con indicaciones de pausa y enfasis en MAYUSCULAS\",\n      \"cta\": \"Llamada a la accion final\",\n      \"palabras_totales\": 150,\n      \"duracion_estimada_seg\": 60,\n      \"notas_produccion\": \"Indicaciones para grabacion o diseno\",\n      \"hashtags_sugeridos\": [\"#hashtag1\", \"#hashtag2\"]\n    },\n    {\n      \"variacion\": \"PRACTICA\",\n      \"titulo_guion\": \"Titulo especifico para esta variacion\",\n      \"hook\": \"Texto exacto del hook\",\n      \"cuerpo\": \"Texto completo del guion\",\n      \"cta\": \"Llamada a la accion final\",\n      \"palabras_totales\": 150,\n      \"duracion_estimada_seg\": 60,\n      \"notas_produccion\": \"Indicaciones para grabacion o diseno\",\n      \"hashtags_sugeridos\": [\"#hashtag1\", \"#hashtag2\"]\n    },\n    {\n      \"variacion\": \"NARRATIVA\",\n      \"titulo_guion\": \"Titulo especifico para esta variacion\",\n      \"hook\": \"Texto exacto del hook\",\n      \"cuerpo\": \"Texto completo del guion\",\n      \"cta\": \"Llamada a la accion final\",\n      \"palabras_totales\": 150,\n      \"duracion_estimada_seg\": 60,\n      \"notas_produccion\": \"Indicaciones para grabacion o diseno\",\n      \"hashtags_sugeridos\": [\"#hashtag1\", \"#hashtag2\"]\n    }\n  ]\n}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    idea_id: ideaId,\n    titulo: titulo,\n    formato: formato,\n    pilar: pilar,\n    campos_originales: fields\n  }\n}];"
+      },
+      "id": "code-construir-prompt-guion",
+      "name": "Code: Construir Prompt Guion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 240],
+      "notes": "Construye el prompt detallado para Claude incluyendo todas las caracteristicas de la idea aprobada."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 8192,\n  \"temperature\": 1,\n  \"system\": \"Eres el guionista experto de NOA. Siempre respondes con JSON valido y perfectamente formateado. Nunca incluyes texto fuera del JSON.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "http-claude-generar-guiones",
+      "name": "HTTP: Claude Generar Guiones",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 240],
+      "notes": "Llama a Claude para generar 3 variaciones de guion. Timeout alto por la longitud del contenido. Placeholder: ANTHROPIC_API_KEY"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear las 3 variaciones de guion de la respuesta de Claude\nconst claudeResponse = $input.first().json;\nconst contexto = $('Code: Construir Prompt Guion').first().json;\n\nif (!claudeResponse.content || !claudeResponse.content[0] || !claudeResponse.content[0].text) {\n  throw new Error('Respuesta de Claude vacia o invalida para guiones');\n}\n\nconst rawText = claudeResponse.content[0].text;\n\n// Extraer bloque JSON\nlet jsonString = rawText;\nconst jsonMatch = rawText.match(/\\{[\\s\\S]*\\}/);\nif (jsonMatch) {\n  jsonString = jsonMatch[0];\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(jsonString);\n} catch (e) {\n  throw new Error(`Error parseando JSON de guiones: ${e.message}\\nPrimeros 500 chars: ${rawText.substring(0, 500)}`);\n}\n\nif (!parsed.guiones || !Array.isArray(parsed.guiones)) {\n  throw new Error('La respuesta no contiene el array de guiones');\n}\n\nconst fechaHoy = new Date().toISOString().split('T')[0];\n\n// Formatear cada guion para Airtable\nconst guionesFormateados = parsed.guiones.map((guion, index) => ({\n  json: {\n    fields: {\n      idea_id: parsed.idea_id || contexto.idea_id,\n      titulo_original_idea: parsed.titulo_original || contexto.titulo,\n      variacion: guion.variacion || `VARIACION_${index + 1}`,\n      titulo_guion: guion.titulo_guion || `Guion ${index + 1}`,\n      hook: guion.hook || '',\n      cuerpo: guion.cuerpo || '',\n      cta: guion.cta || '',\n      palabras_totales: guion.palabras_totales || 0,\n      duracion_estimada_seg: guion.duracion_estimada_seg || 60,\n      notas_produccion: guion.notas_produccion || '',\n      hashtags_sugeridos: Array.isArray(guion.hashtags_sugeridos)\n        ? guion.hashtags_sugeridos.join(' ')\n        : guion.hashtags_sugeridos || '',\n      estado: 'REVISION',\n      fecha_creacion: fechaHoy,\n      modelo_ia: 'claude-opus-4-5',\n      formato: contexto.formato,\n      pilar: contexto.pilar\n    },\n    _idea_id: contexto.idea_id\n  }\n}));\n\nreturn guionesFormateados;"
+      },
+      "id": "code-parsear-guiones",
+      "name": "Code: Parsear Guiones de Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 240],
+      "notes": "Parsea las 3 variaciones de guion y las prepara para guardado en Airtable."
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Guiones",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "idea_id": "={{ $json.fields.idea_id }}",
+            "titulo_original_idea": "={{ $json.fields.titulo_original_idea }}",
+            "variacion": "={{ $json.fields.variacion }}",
+            "titulo_guion": "={{ $json.fields.titulo_guion }}",
+            "hook": "={{ $json.fields.hook }}",
+            "cuerpo": "={{ $json.fields.cuerpo }}",
+            "cta": "={{ $json.fields.cta }}",
+            "palabras_totales": "={{ $json.fields.palabras_totales }}",
+            "duracion_estimada_seg": "={{ $json.fields.duracion_estimada_seg }}",
+            "notas_produccion": "={{ $json.fields.notas_produccion }}",
+            "hashtags_sugeridos": "={{ $json.fields.hashtags_sugeridos }}",
+            "estado": "={{ $json.fields.estado }}",
+            "fecha_creacion": "={{ $json.fields.fecha_creacion }}",
+            "modelo_ia": "={{ $json.fields.modelo_ia }}",
+            "formato": "={{ $json.fields.formato }}",
+            "pilar": "={{ $json.fields.pilar }}"
+          }
+        },
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-crear-borrador-guion",
+      "name": "Airtable: Crear Borrador Guion",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1560, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Crea un registro de borrador para cada variacion de guion en la tabla Guiones. Se ejecuta 3 veces."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agregar todos los guiones creados para construir el resumen\nconst guionesCreados = $input.all();\n\n// Obtener ID de la idea original del primer item\nconst ideaId = guionesCreados[0]?.json?._idea_id || guionesCreados[0]?.json?.fields?.idea_id || 'ID_DESCONOCIDO';\n\nreturn [{\n  json: {\n    total_guiones: guionesCreados.length,\n    idea_id: ideaId,\n    guiones_ids: guionesCreados.map(g => g.json.id).filter(Boolean),\n    guiones_titulos: guionesCreados.map(g => {\n      const f = g.json.fields || g.json;\n      return `${f.variacion}: ${f.titulo_guion || 'Sin titulo'}`;\n    }),\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code-agregar-resultados",
+      "name": "Code: Agregar Resultados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 240],
+      "notes": "Agrega los 3 guiones creados en un solo item para enviar la notificacion de revision."
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Ideas",
+        "id": "={{ $json.idea_id }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "estado": "GUION",
+            "fecha_guion": "={{ new Date().toISOString().split('T')[0] }}",
+            "guiones_generados": "={{ $json.total_guiones }}"
+          }
+        },
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-actualizar-idea-a-guion",
+      "name": "Airtable: Actualizar Idea a GUION",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [2000, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Actualiza el estado de la idea original de APROBADA a GUION para indicar que ya tiene guiones generados."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"*NOA - Guiones Listos para Revision*\",\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"Guiones Generados - Revision Humana Requerida\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Idea ID:* {{ $json.idea_id }}\\n*Guiones generados:* {{ $json.total_guiones }}\\n*Variaciones:*\\n{{ $json.guiones_titulos.join('\\n') }}\\n\\nRevisa y aprueba uno de los guiones en Airtable para continuar el pipeline.\"\n      }\n    },\n    {\n      \"type\": \"actions\",\n      \"elements\": [\n        {\n          \"type\": \"button\",\n          \"text\": { \"type\": \"plain_text\", \"text\": \"Ver Guiones en Airtable\" },\n          \"url\": \"https://airtable.com/{{ $env.AIRTABLE_BASE_ID }}/Guiones\",\n          \"style\": \"primary\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-guiones-revision",
+      "name": "HTTP: Slack - Guiones para Revision",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 240],
+      "notes": "Notifica al equipo en Slack que hay guiones nuevos listos para revision humana. Placeholder: SLACK_WEBHOOK_URL"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noa-content@ejemplo.com",
+        "toEmail": "={{ $env.NOTIFICATION_EMAIL }}",
+        "subject": "NOA - Guiones listos para revision: {{ $('Code: Construir Prompt Guion').first().json.titulo }}",
+        "emailFormat": "html",
+        "html": "<h2>NOA Content - Guiones Listos para Revision</h2><p><strong>Idea:</strong> {{ $('Code: Construir Prompt Guion').first().json.titulo }}</p><p><strong>Guiones generados:</strong> {{ $json.total_guiones }} variaciones</p><p>Por favor revisa y aprueba uno de los guiones en Airtable para continuar el pipeline de produccion.</p><p><a href='https://airtable.com/{{ $env.AIRTABLE_BASE_ID }}/Guiones'>Ver Guiones en Airtable</a></p>"
+      },
+      "id": "email-guiones-revision",
+      "name": "Email: Guiones para Revision",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2220, 400],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-cred-id",
+          "name": "SMTP - NOA Notifications"
+        }
+      },
+      "notes": "Envia email de notificacion con el resumen de guiones generados. Placeholder: NOTIFICATION_EMAIL"
+    },
+    {
+      "parameters": {
+        "operation": "noOp"
+      },
+      "id": "noop-no-aprobada",
+      "name": "NoOp: Idea No Aprobada",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [680, 420],
+      "notes": "Las ideas que no tienen estado APROBADA se descartan aqui sin procesar."
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first();\n\nconst errorInfo = {\n  workflow: 'NOA - Guiones desde Ideas',\n  timestamp: new Date().toISOString(),\n  error_message: error.json.message || error.json.error || JSON.stringify(error.json),\n  context: 'Error generando guiones'\n};\n\nconsole.error('Error en workflow Guiones:', JSON.stringify(errorInfo));\n\nreturn [{ json: errorInfo }];"
+      },
+      "id": "code-error-handler-guiones",
+      "name": "Code: Error Handler Guiones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 480],
+      "notes": "Captura y registra errores en el proceso de generacion de guiones."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"*ERROR en NOA - Guiones desde Ideas*\\n*Error:* {{ $json.error_message }}\\n*Hora:* {{ $json.timestamp }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-error-guiones",
+      "name": "HTTP: Slack Error Guiones",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 480],
+      "notes": "Envia alerta de error al canal de Slack."
+    }
+  ],
+  "connections": {
+    "Trigger: Idea Aprobada en Airtable": {
+      "main": [
+        [
+          {
+            "node": "IF: Estado es APROBADA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Estado es APROBADA": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Obtener Idea Completa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: Idea No Aprobada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Obtener Idea Completa": {
+      "main": [
+        [
+          {
+            "node": "Code: Construir Prompt Guion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Construir Prompt Guion": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Claude Generar Guiones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Claude Generar Guiones": {
+      "main": [
+        [
+          {
+            "node": "Code: Parsear Guiones de Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parsear Guiones de Claude": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Crear Borrador Guion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Crear Borrador Guion": {
+      "main": [
+        [
+          {
+            "node": "Code: Agregar Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Agregar Resultados": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Actualizar Idea a GUION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Actualizar Idea a GUION": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack - Guiones para Revision",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email: Guiones para Revision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Error Handler Guiones": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack Error Guiones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "timezone": "Europe/Madrid"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "tag-noa-content",
+      "name": "NOA Content System"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "v1.0.0",
+  "meta": {
+    "instanceId": "noa-coach-instance",
+    "templateCredsSetupCompleted": false
+  },
+  "id": "workflow-guiones-desde-ideas",
+  "active": false
+}

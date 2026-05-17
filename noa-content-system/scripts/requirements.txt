@@ -1,0 +1,42 @@
+# Dependencias del sistema de automatización de contenido NOA
+# Pínadas a versiones estables recientes (mayo 2025)
+
+# --- Inteligencia Artificial ---
+anthropic==0.28.0          # Claude API (generación de contenido)
+openai==1.30.5             # OpenAI API (Whisper como fallback para transcripción)
+elevenlabs==1.2.1          # ElevenLabs (síntesis de voz para vídeos)
+
+# --- Bases de datos y almacenamiento ---
+pyairtable==2.3.3          # Airtable (base de datos de contenido NOA)
+google-api-python-client==2.131.0  # Google Drive API
+google-auth==2.29.0        # Autenticación Google
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+
+# --- HTTP y comunicaciones ---
+requests==2.32.3           # Peticiones HTTP genéricas
+httpx==0.27.0              # HTTP asíncrono (usado por SDK de Anthropic)
+
+# --- Configuración y entorno ---
+python-dotenv==1.0.1       # Variables de entorno desde .env
+
+# --- CLI y visualización en terminal ---
+rich==13.7.1               # Terminal bonita con tablas, progreso y colores
+click==8.1.7               # Interfaz de línea de comandos
+
+# --- Validación de datos ---
+pydantic==2.7.1            # Validación y tipado de modelos de datos
+
+# --- Programación de tareas ---
+schedule==1.2.2            # Cron-like scheduler en Python
+
+# --- Utilidades de archivos ---
+pathlib2==2.3.7.post1      # Compatibilidad pathlib (Python < 3.6, opcional)
+python-magic==0.4.27       # Detección de tipo de archivo por cabecera binaria
+
+# --- Fechas y tiempo ---
+python-dateutil==2.9.0.post0
+
+# --- Testing (opcional, para desarrollo) ---
+pytest==8.2.2
+pytest-mock==3.14.0

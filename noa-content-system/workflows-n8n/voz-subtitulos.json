@@ -1,0 +1,647 @@
+{
+  "name": "NOA - Voz y Subtitulos desde Guion Aprobado",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute",
+              "minute": 5
+            }
+          ]
+        },
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Guiones",
+        "triggerField": "estado",
+        "additionalFields": {}
+      },
+      "id": "trigger-guion-aprobado",
+      "name": "Trigger: Guion Aprobado en Airtable",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Polling cada 5 minutos en la tabla Guiones. Se activa cuando hay registros nuevos o modificados. Placeholder: AIRTABLE_BASE_ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-estado-aprobado",
+              "leftValue": "={{ $json.fields.estado }}",
+              "rightValue": "APROBADO",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-guion-aprobado",
+      "name": "IF: Guion Estado APROBADO",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [460, 300],
+      "notes": "Filtra solo los guiones con estado APROBADO para procesamiento de voz."
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Guiones",
+        "id": "={{ $json.id }}",
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-obtener-guion-completo",
+      "name": "Airtable: Obtener Guion Completo",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [680, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Obtiene el registro completo del guion aprobado para acceder a todos sus campos."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar datos del guion para generacion de voz\nconst item = $input.first();\nconst fields = item.json.fields || item.json;\n\nconst guionId = item.json.id || 'ID_DESCONOCIDO';\nconst cuerpo = fields.cuerpo || '';\nconst hook = fields.hook || '';\nconst cta = fields.cta || '';\n\n// Construir texto completo del guion (hook + cuerpo + cta)\nconst textoCompleto = [hook, cuerpo, cta]\n  .filter(t => t && t.trim())\n  .join(' ')\n  .trim();\n\n// Limpiar texto: quitar indicaciones de produccion en parentesis o corchetes\nconst textoLimpio = textoCompleto\n  .replace(/\\([^)]*\\)/g, '') // Eliminar (indicaciones entre parentesis)\n  .replace(/\\[[^\\]]*\\]/g, '') // Eliminar [indicaciones entre corchetes]\n  .replace(/[A-Z]{5,}/g, match => match.toLowerCase()) // Bajar mayusculas de enfasis\n  .replace(/\\s+/g, ' ')\n  .trim();\n\n// Seleccionar voz segun el pilar del contenido\nconst pilar = fields.pilar || 'Herramientas';\nlet voiceId;\nswitch (pilar) {\n  case 'Comunidad':\n  case 'COMUNIDAD':\n    voiceId = process.env.ELEVENLABS_VOICE_ID_CALIDA || $env.ELEVENLABS_VOICE_ID_CALIDA;\n    break;\n  case 'Ciencia':\n  case 'CIENCIA':\n    voiceId = process.env.ELEVENLABS_VOICE_ID_PROFESIONAL || $env.ELEVENLABS_VOICE_ID_PROFESIONAL;\n    break;\n  default:\n    voiceId = process.env.ELEVENLABS_VOICE_ID_DEFAULT || $env.ELEVENLABS_VOICE_ID_DEFAULT || 'pNInz6obpgDQGcFmaJgB';\n}\n\nif (!textoLimpio || textoLimpio.length < 10) {\n  throw new Error(`El guion ${guionId} tiene texto insuficiente para generar voz`);\n}\n\nreturn [{\n  json: {\n    guion_id: guionId,\n    texto_completo: textoLimpio,\n    texto_longitud: textoLimpio.length,\n    voice_id: voiceId,\n    titulo_guion: fields.titulo_guion || 'Sin titulo',\n    variacion: fields.variacion || 'PRINCIPAL',\n    formato: fields.formato || 'Video corto',\n    pilar: pilar,\n    idea_id: fields.idea_id || '',\n    campos_originales: fields\n  }\n}];"
+      },
+      "id": "code-preparar-texto-voz",
+      "name": "Code: Preparar Texto para Voz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 240],
+      "notes": "Limpia el texto del guion eliminando indicaciones de produccion y lo prepara para ElevenLabs."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $json.voice_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "audio/mpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.texto_completo) }},\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.8,\n    \"style\": 0.3,\n    \"use_speaker_boost\": true\n  },\n  \"output_format\": \"mp3_44100_128\"\n}",
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "http-elevenlabs-generar-voz",
+      "name": "HTTP: ElevenLabs Generar Voz",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 240],
+      "notes": "Llama a ElevenLabs TTS API con eleven_multilingual_v2 para generacion de voz en espanol. Devuelve archivo MP3 binario. Placeholder: ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID_DEFAULT"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verificar que la respuesta de ElevenLabs contiene audio binario\nconst response = $input.first();\n\n// El audio viene como datos binarios en $input.first().binary\nif (!response.binary || !response.binary.data) {\n  // Intentar verificar si viene en el body\n  if (!response.json) {\n    throw new Error('ElevenLabs no devolvio datos de audio. Verificar API key y voice_id.');\n  }\n}\n\nconst contexto = $('Code: Preparar Texto para Voz').first().json;\nconst timestamp = new Date().getTime();\nconst nombreArchivo = `noa_voz_${contexto.guion_id}_${timestamp}.mp3`;\n\nreturn [{\n  json: {\n    guion_id: contexto.guion_id,\n    titulo_guion: contexto.titulo_guion,\n    variacion: contexto.variacion,\n    formato: contexto.formato,\n    pilar: contexto.pilar,\n    idea_id: contexto.idea_id,\n    nombre_archivo_audio: nombreArchivo,\n    texto_completo: contexto.texto_completo,\n    texto_longitud: contexto.texto_longitud,\n    campos_originales: contexto.campos_originales\n  },\n  binary: response.binary\n}];"
+      },
+      "id": "code-verificar-audio",
+      "name": "Code: Verificar y Preparar Audio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 240],
+      "notes": "Verifica que el audio se genero correctamente y prepara el nombre de archivo para Google Drive."
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ $json.nombre_archivo_audio }}",
+        "driveId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_DRIVE_ID }}",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_DRIVE_FOLDER_VOZ }}",
+          "mode": "id"
+        },
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "options": {
+          "ocrLanguage": "es"
+        }
+      },
+      "id": "googledrive-subir-audio",
+      "name": "Google Drive: Subir Audio MP3",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1560, 240],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gdrive-cred-id",
+          "name": "Google Drive - NOA Content"
+        }
+      },
+      "notes": "Sube el archivo MP3 a la carpeta de voces en Google Drive. Placeholder: GOOGLE_DRIVE_ID, GOOGLE_DRIVE_FOLDER_VOZ"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Guardar URL del audio y preparar para timestamps\nconst driveResponse = $input.first();\nconst audioContext = $('Code: Verificar y Preparar Audio').first().json;\n\nconst audioFileId = driveResponse.json.id || driveResponse.json.fileId;\nconst audioUrl = `https://drive.google.com/uc?id=${audioFileId}&export=download`;\nconst audioWebViewUrl = `https://drive.google.com/file/d/${audioFileId}/view`;\n\nreturn [{\n  json: {\n    guion_id: audioContext.guion_id,\n    titulo_guion: audioContext.titulo_guion,\n    variacion: audioContext.variacion,\n    formato: audioContext.formato,\n    pilar: audioContext.pilar,\n    idea_id: audioContext.idea_id,\n    nombre_archivo_audio: audioContext.nombre_archivo_audio,\n    audio_file_id: audioFileId,\n    audio_url: audioUrl,\n    audio_web_view_url: audioWebViewUrl,\n    texto_completo: audioContext.texto_completo,\n    texto_longitud: audioContext.texto_longitud,\n    campos_originales: audioContext.campos_originales\n  }\n}];"
+      },
+      "id": "code-guardar-url-audio",
+      "name": "Code: Guardar URL del Audio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 240],
+      "notes": "Extrae y guarda la URL publica del archivo de audio en Google Drive."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/speech-to-speech/timestamps",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.texto_completo) }},\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_id\": \"{{ $('Code: Preparar Texto para Voz').first().json.voice_id }}\"\n}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "http-elevenlabs-timestamps",
+      "name": "HTTP: ElevenLabs Timestamps",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 240],
+      "notes": "Obtiene timestamps a nivel de palabra de ElevenLabs para generar subtitulos precisos. Si falla, usar Whisper como fallback."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "check-timestamps-ok",
+              "leftValue": "={{ $json.alignment && $json.alignment.characters && $json.alignment.characters.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-timestamps-disponibles",
+      "name": "IF: Timestamps Disponibles",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [2220, 240],
+      "notes": "Verifica si ElevenLabs devolvio timestamps validos. Si no, usa generacion de SRT basada en tiempo estimado."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generar archivo SRT desde timestamps de ElevenLabs\nconst timestampsData = $input.first().json;\nconst audioContext = $('Code: Guardar URL del Audio').first().json;\n\nconst alignment = timestampsData.alignment || {};\nconst characters = alignment.characters || [];\nconst charStartTimes = alignment.character_start_times_seconds || [];\nconst charEndTimes = alignment.character_end_times_seconds || [];\n\nif (characters.length === 0) {\n  throw new Error('No hay datos de caracteres en el alignment de ElevenLabs');\n}\n\n// Reconstruir palabras con sus tiempos\nconst palabras = [];\nlet palabraActual = '';\nlet startPalabra = 0;\n\nfor (let i = 0; i < characters.length; i++) {\n  const char = characters[i];\n  if (char === ' ' || char === '\\n') {\n    if (palabraActual.trim()) {\n      palabras.push({\n        texto: palabraActual.trim(),\n        inicio: startPalabra,\n        fin: charEndTimes[i - 1] || charEndTimes[i]\n      });\n    }\n    palabraActual = '';\n    startPalabra = charStartTimes[i + 1] || charStartTimes[i];\n  } else {\n    if (!palabraActual) {\n      startPalabra = charStartTimes[i];\n    }\n    palabraActual += char;\n  }\n}\n// Ultima palabra\nif (palabraActual.trim()) {\n  palabras.push({\n    texto: palabraActual.trim(),\n    inicio: startPalabra,\n    fin: charEndTimes[charEndTimes.length - 1]\n  });\n}\n\n// Agrupar palabras en bloques de subtitulo (max 7 palabras o 5 segundos)\nconst PALABRAS_POR_BLOQUE = 7;\nconst bloques = [];\nfor (let i = 0; i < palabras.length; i += PALABRAS_POR_BLOQUE) {\n  const grupo = palabras.slice(i, i + PALABRAS_POR_BLOQUE);\n  bloques.push({\n    numero: bloques.length + 1,\n    inicio: grupo[0].inicio,\n    fin: grupo[grupo.length - 1].fin,\n    texto: grupo.map(p => p.texto).join(' ')\n  });\n}\n\n// Funcion para formatear tiempo en HH:MM:SS,mmm\nconst formatSRTTime = (seconds) => {\n  const h = Math.floor(seconds / 3600);\n  const m = Math.floor((seconds % 3600) / 60);\n  const s = Math.floor(seconds % 60);\n  const ms = Math.round((seconds % 1) * 1000);\n  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;\n};\n\n// Generar contenido SRT\nconst srtContent = bloques.map(bloque => [\n  bloque.numero,\n  `${formatSRTTime(bloque.inicio)} --> ${formatSRTTime(bloque.fin)}`,\n  bloque.texto,\n  ''\n].join('\\n')).join('\\n');\n\nconst nombreSRT = `noa_sub_${audioContext.guion_id}_${new Date().getTime()}.srt`;\n\nreturn [{\n  json: {\n    guion_id: audioContext.guion_id,\n    titulo_guion: audioContext.titulo_guion,\n    variacion: audioContext.variacion,\n    formato: audioContext.formato,\n    pilar: audioContext.pilar,\n    idea_id: audioContext.idea_id,\n    audio_url: audioContext.audio_url,\n    audio_web_view_url: audioContext.audio_web_view_url,\n    srt_content: srtContent,\n    nombre_archivo_srt: nombreSRT,\n    total_bloques_srt: bloques.length,\n    total_palabras: palabras.length,\n    metodo_srt: 'elevenlabs_timestamps'\n  }\n}];"
+      },
+      "id": "code-generar-srt-elevenlabs",
+      "name": "Code: Generar SRT desde ElevenLabs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2440, 180],
+      "notes": "Genera el archivo SRT con timestamps precisos de ElevenLabs. Agrupa en bloques de max 7 palabras."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fallback: Generar SRT estimado cuando no hay timestamps de ElevenLabs\n// Estima timing basado en velocidad de habla promedio en espanol: ~150 palabras/min\nconst audioContext = $('Code: Guardar URL del Audio').first().json;\nconst textoCompleto = audioContext.texto_completo || '';\n\nconst VELOCIDAD_PALABRAS_POR_SEG = 2.5; // ~150 palabras/minuto en espanol\nconst PALABRAS_POR_BLOQUE = 6;\n\nconst palabras = textoCompleto.split(/\\s+/).filter(p => p.length > 0);\n\n// Agrupar en bloques\nconst bloques = [];\nlet tiempoActual = 0;\n\nfor (let i = 0; i < palabras.length; i += PALABRAS_POR_BLOQUE) {\n  const grupo = palabras.slice(i, i + PALABRAS_POR_BLOQUE);\n  const duracionBloque = grupo.length / VELOCIDAD_PALABRAS_POR_SEG;\n  \n  bloques.push({\n    numero: bloques.length + 1,\n    inicio: tiempoActual,\n    fin: tiempoActual + duracionBloque,\n    texto: grupo.join(' ')\n  });\n  \n  tiempoActual += duracionBloque;\n}\n\nconst formatSRTTime = (seconds) => {\n  const h = Math.floor(seconds / 3600);\n  const m = Math.floor((seconds % 3600) / 60);\n  const s = Math.floor(seconds % 60);\n  const ms = Math.round((seconds % 1) * 1000);\n  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;\n};\n\nconst srtContent = bloques.map(bloque => [\n  bloque.numero,\n  `${formatSRTTime(bloque.inicio)} --> ${formatSRTTime(bloque.fin)}`,\n  bloque.texto,\n  ''\n].join('\\n')).join('\\n');\n\nconst nombreSRT = `noa_sub_est_${audioContext.guion_id}_${new Date().getTime()}.srt`;\n\nreturn [{\n  json: {\n    guion_id: audioContext.guion_id,\n    titulo_guion: audioContext.titulo_guion,\n    variacion: audioContext.variacion,\n    formato: audioContext.formato,\n    pilar: audioContext.pilar,\n    idea_id: audioContext.idea_id,\n    audio_url: audioContext.audio_url,\n    audio_web_view_url: audioContext.audio_web_view_url,\n    srt_content: srtContent,\n    nombre_archivo_srt: nombreSRT,\n    total_bloques_srt: bloques.length,\n    total_palabras: palabras.length,\n    metodo_srt: 'estimacion_velocidad_habla',\n    advertencia: 'SRT generado con estimacion. Revisar sincronizacion manualmente.'\n  }\n}];"
+      },
+      "id": "code-generar-srt-estimado",
+      "name": "Code: Generar SRT Estimado (Fallback)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2440, 340],
+      "notes": "Fallback cuando ElevenLabs no devuelve timestamps. Genera SRT estimado a 150 palabras/minuto (velocidad natural en espanol)."
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ $json.nombre_archivo_srt }}",
+        "driveId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_DRIVE_ID }}",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_DRIVE_FOLDER_SUBTITULOS }}",
+          "mode": "id"
+        },
+        "binaryData": false,
+        "fileContent": "={{ $json.srt_content }}",
+        "mimeType": "text/plain",
+        "options": {}
+      },
+      "id": "googledrive-subir-srt",
+      "name": "Google Drive: Subir Archivo SRT",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2660, 260],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gdrive-cred-id",
+          "name": "Google Drive - NOA Content"
+        }
+      },
+      "notes": "Sube el archivo .srt a la carpeta de subtitulos en Google Drive. Placeholder: GOOGLE_DRIVE_FOLDER_SUBTITULOS"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar datos finales para actualizar Airtable\nconst srtContext = $input.first().json;\nconst driveResponse = $('Google Drive: Subir Archivo SRT').first().json;\n\nconst srtFileId = driveResponse.id || driveResponse.fileId;\nconst srtUrl = `https://drive.google.com/uc?id=${srtFileId}&export=download`;\nconst srtWebViewUrl = `https://drive.google.com/file/d/${srtFileId}/view`;\n\nreturn [{\n  json: {\n    guion_id: srtContext.guion_id,\n    titulo_guion: srtContext.titulo_guion,\n    variacion: srtContext.variacion,\n    formato: srtContext.formato,\n    pilar: srtContext.pilar,\n    idea_id: srtContext.idea_id,\n    audio_url: srtContext.audio_url,\n    audio_web_view_url: srtContext.audio_web_view_url,\n    srt_url: srtUrl,\n    srt_web_view_url: srtWebViewUrl,\n    metodo_srt: srtContext.metodo_srt,\n    total_bloques_srt: srtContext.total_bloques_srt,\n    advertencia: srtContext.advertencia || null,\n    fecha_generacion_voz: new Date().toISOString().split('T')[0]\n  }\n}];"
+      },
+      "id": "code-preparar-actualizacion-final",
+      "name": "Code: Preparar Actualizacion Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2880, 260],
+      "notes": "Consolida todos los datos (audio URL, SRT URL) para actualizar el registro en Airtable."
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Guiones",
+        "id": "={{ $json.guion_id }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "estado": "VOZ",
+            "audio_url": "={{ $json.audio_url }}",
+            "audio_drive_url": "={{ $json.audio_web_view_url }}",
+            "srt_url": "={{ $json.srt_url }}",
+            "srt_drive_url": "={{ $json.srt_web_view_url }}",
+            "metodo_srt": "={{ $json.metodo_srt }}",
+            "fecha_generacion_voz": "={{ $json.fecha_generacion_voz }}",
+            "notas_voz": "={{ $json.advertencia || 'Generado correctamente' }}"
+          }
+        },
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-actualizar-estado-voz",
+      "name": "Airtable: Actualizar Estado a VOZ",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [3100, 260],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Actualiza el registro del guion con las URLs de audio y SRT, y cambia estado a VOZ."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"*NOA - Voz y Subtitulos Generados*\",\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"Voz y Subtitulos Listos\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        { \"type\": \"mrkdwn\", \"text\": \"*Guion:* {{ $json.titulo_guion }}\" },\n        { \"type\": \"mrkdwn\", \"text\": \"*Variacion:* {{ $json.variacion }}\" },\n        { \"type\": \"mrkdwn\", \"text\": \"*Formato:* {{ $json.formato }}\" },\n        { \"type\": \"mrkdwn\", \"text\": \"*Metodo SRT:* {{ $json.metodo_srt }}\" }\n      ]\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Audio:* <{{ $json.audio_web_view_url }}|Ver en Drive>\\n*Subtitulos:* <{{ $json.srt_web_view_url }}|Ver SRT en Drive>{{ $json.advertencia ? '\\n*Advertencia:* ' + $json.advertencia : '' }}\"\n      }\n    }\n  ]\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-voz-lista",
+      "name": "HTTP: Slack - Voz y SRT Listos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3320, 260],
+      "notes": "Notifica al equipo que el audio y los subtitulos estan disponibles en Google Drive."
+    },
+    {
+      "parameters": {
+        "operation": "noOp"
+      },
+      "id": "noop-guion-no-aprobado",
+      "name": "NoOp: Guion No Aprobado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [680, 420],
+      "notes": "Los guiones que no tienen estado APROBADO se descartan sin procesar."
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first();\n\nconst errorInfo = {\n  workflow: 'NOA - Voz y Subtitulos',\n  timestamp: new Date().toISOString(),\n  error_message: error.json.message || error.json.error || JSON.stringify(error.json),\n  context: 'Error en pipeline de voz y subtitulos'\n};\n\nconsole.error('Error en workflow Voz:', JSON.stringify(errorInfo));\n\nreturn [{ json: errorInfo }];"
+      },
+      "id": "code-error-handler-voz",
+      "name": "Code: Error Handler Voz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 480],
+      "notes": "Captura errores en el pipeline de generacion de voz y subtitulos."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"*ERROR en NOA - Voz y Subtitulos*\\n*Error:* {{ $json.error_message }}\\n*Hora:* {{ $json.timestamp }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-error-voz",
+      "name": "HTTP: Slack Error Voz",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 480],
+      "notes": "Envia alerta de error al canal de Slack para el pipeline de voz."
+    }
+  ],
+  "connections": {
+    "Trigger: Guion Aprobado en Airtable": {
+      "main": [
+        [
+          {
+            "node": "IF: Guion Estado APROBADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Guion Estado APROBADO": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Obtener Guion Completo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: Guion No Aprobado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Obtener Guion Completo": {
+      "main": [
+        [
+          {
+            "node": "Code: Preparar Texto para Voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Preparar Texto para Voz": {
+      "main": [
+        [
+          {
+            "node": "HTTP: ElevenLabs Generar Voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ElevenLabs Generar Voz": {
+      "main": [
+        [
+          {
+            "node": "Code: Verificar y Preparar Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Verificar y Preparar Audio": {
+      "main": [
+        [
+          {
+            "node": "Google Drive: Subir Audio MP3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive: Subir Audio MP3": {
+      "main": [
+        [
+          {
+            "node": "Code: Guardar URL del Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Guardar URL del Audio": {
+      "main": [
+        [
+          {
+            "node": "HTTP: ElevenLabs Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ElevenLabs Timestamps": {
+      "main": [
+        [
+          {
+            "node": "IF: Timestamps Disponibles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Timestamps Disponibles": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar SRT desde ElevenLabs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Generar SRT Estimado (Fallback)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar SRT desde ElevenLabs": {
+      "main": [
+        [
+          {
+            "node": "Google Drive: Subir Archivo SRT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar SRT Estimado (Fallback)": {
+      "main": [
+        [
+          {
+            "node": "Google Drive: Subir Archivo SRT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive: Subir Archivo SRT": {
+      "main": [
+        [
+          {
+            "node": "Code: Preparar Actualizacion Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Preparar Actualizacion Final": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Actualizar Estado a VOZ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Actualizar Estado a VOZ": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack - Voz y SRT Listos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Error Handler Voz": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack Error Voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "timezone": "Europe/Madrid"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "tag-noa-content",
+      "name": "NOA Content System"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "v1.0.0",
+  "meta": {
+    "instanceId": "noa-coach-instance",
+    "templateCredsSetupCompleted": false
+  },
+  "id": "workflow-voz-subtitulos",
+  "active": false
+}

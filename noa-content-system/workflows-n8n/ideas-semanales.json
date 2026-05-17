@@ -1,0 +1,398 @@
+{
+  "name": "NOA - Ideas Semanales (Lunes 8am)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "trigger-schedule-lunes",
+      "name": "Trigger: Lunes 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "notes": "Se ejecuta cada lunes a las 8:00 AM. Inicia el proceso de generacion de ideas semanales."
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Calendario_Contenido",
+        "filterByFormula": "AND({semana_actual}=TRUE(), {estado}='PENDIENTE')",
+        "returnAll": true,
+        "options": {
+          "fields": [
+            "tema_principal",
+            "subtemas",
+            "formato_preferido",
+            "publico_objetivo",
+            "semana",
+            "pilares_contenido"
+          ]
+        },
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-leer-calendario",
+      "name": "Airtable: Leer Calendario",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [460, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Lee el calendario de contenido de Airtable para la semana actual. Base: NOA_Content, Tabla: Calendario_Contenido"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-calendario-vacio",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-calendario-tiene-datos",
+      "name": "IF: Hay datos en calendario",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [680, 300],
+      "notes": "Verifica que el calendario tenga entradas para esta semana antes de continuar."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir contexto del calendario para el prompt de Claude\nconst items = $input.all();\n\nconst calendarContext = items.map(item => {\n  const fields = item.json.fields || item.json;\n  return {\n    tema: fields.tema_principal || 'Sin tema definido',\n    subtemas: fields.subtemas || [],\n    formato: fields.formato_preferido || 'Video corto',\n    publico: fields.publico_objetivo || 'Padres de adolescentes con AACC',\n    semana: fields.semana || '',\n    pilares: fields.pilares_contenido || []\n  };\n});\n\nconst contextString = calendarContext.map((c, i) =>\n  `Entrada ${i + 1}:\\n  Tema: ${c.tema}\\n  Subtemas: ${Array.isArray(c.subtemas) ? c.subtemas.join(', ') : c.subtemas}\\n  Formato: ${c.formato}\\n  Pilares: ${Array.isArray(c.pilares) ? c.pilares.join(', ') : c.pilares}`\n).join('\\n\\n');\n\nconst fechaActual = new Date().toLocaleDateString('es-ES', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nconst prompt = `Eres el estratega de contenido de NOA, una aplicacion para padres de adolescentes con Altas Capacidades Cognitivas (AACC).\n\nFecha: ${fechaActual}\n\nContexto del calendario de esta semana:\n${contextString || 'Sin entradas especificas en el calendario. Genera ideas basadas en los pilares principales de NOA.'}\n\nPilares de contenido de NOA:\n1. Comprension - Entender como piensa y siente un adolescente con AACC\n2. Herramientas - Tecnicas practicas para padres\n3. Comunidad - Experiencias compartidas y sentido de pertenencia\n4. Esperanza - Historias de exito y progreso\n5. Ciencia - Bases neurocienticias y psicologicas\n\nTono: Empatico, cercano, experto pero accesible. Como un amigo que tambien es especialista.\nFormatos disponibles: Video corto TikTok/Reels (60-90s), Carrusel Instagram, Historia, Post texto, Email newsletter.\n\nGenera exactamente 10 ideas de contenido originales y accionables para esta semana.\n\nResponde UNICAMENTE con un JSON valido con esta estructura exacta:\n{\n  \"ideas\": [\n    {\n      \"titulo\": \"Titulo llamativo del contenido (max 80 caracteres)\",\n      \"hook\": \"Primera frase gancho que para el scroll (max 150 caracteres)\",\n      \"concepto\": \"Descripcion del concepto en 2-3 oraciones\",\n      \"formato\": \"Video corto | Carrusel | Historia | Post texto | Email\",\n      \"pilar\": \"Comprension | Herramientas | Comunidad | Esperanza | Ciencia\",\n      \"angulo_emocional\": \"Emocion principal que conecta con el padre\",\n      \"palabras_clave\": [\"keyword1\", \"keyword2\", \"keyword3\"],\n      \"urgencia\": \"Alta | Media | Baja\",\n      \"estimacion_tiempo_produccion\": \"rapido | medio | complejo\"\n    }\n  ]\n}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    calendario_context: calendarContext,\n    fecha_generacion: new Date().toISOString(),\n    total_entradas_calendario: items.length\n  }\n}];"
+      },
+      "id": "code-construir-prompt",
+      "name": "Code: Construir Prompt Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 240],
+      "notes": "Construye el prompt dinamico para Claude basado en el calendario de la semana."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 4096,\n  \"temperature\": 1,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "http-claude-generar-ideas",
+      "name": "HTTP: Claude Generar Ideas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 240],
+      "notes": "Llama a la API de Claude (Anthropic) para generar 10 ideas de contenido. Placeholder: ANTHROPIC_API_KEY"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear respuesta de Claude y extraer las 10 ideas\nconst response = $input.first().json;\n\nif (!response.content || !response.content[0] || !response.content[0].text) {\n  throw new Error('Respuesta de Claude invalida o vacia');\n}\n\nconst rawText = response.content[0].text;\n\n// Extraer JSON de la respuesta (puede venir con texto adicional)\nlet jsonString = rawText;\nconst jsonMatch = rawText.match(/\\{[\\s\\S]*\\}/);\nif (jsonMatch) {\n  jsonString = jsonMatch[0];\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(jsonString);\n} catch (e) {\n  throw new Error(`Error parseando JSON de Claude: ${e.message}\\nTexto recibido: ${rawText.substring(0, 500)}`);\n}\n\nif (!parsed.ideas || !Array.isArray(parsed.ideas)) {\n  throw new Error('La respuesta de Claude no contiene el array de ideas esperado');\n}\n\n// Transformar cada idea al formato de Airtable\nconst fechaHoy = new Date().toISOString().split('T')[0];\nconst semanaNum = (() => {\n  const now = new Date();\n  const start = new Date(now.getFullYear(), 0, 1);\n  return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);\n})();\n\nconst ideasFormateadas = parsed.ideas.map((idea, index) => ({\n  json: {\n    fields: {\n      titulo: idea.titulo || `Idea ${index + 1}`,\n      hook: idea.hook || '',\n      concepto: idea.concepto || '',\n      formato: idea.formato || 'Video corto',\n      pilar: idea.pilar || 'Herramientas',\n      angulo_emocional: idea.angulo_emocional || '',\n      palabras_clave: Array.isArray(idea.palabras_clave) ? idea.palabras_clave.join(', ') : '',\n      urgencia: idea.urgencia || 'Media',\n      estimacion_produccion: idea.estimacion_tiempo_produccion || 'medio',\n      estado: 'BORRADOR',\n      fecha_generacion: fechaHoy,\n      semana_numero: semanaNum,\n      generado_por_ia: true,\n      modelo_ia: 'claude-opus-4-5',\n      indice_idea: index + 1\n    }\n  }\n}));\n\nreturn ideasFormateadas;"
+      },
+      "id": "code-parsear-ideas",
+      "name": "Code: Parsear Ideas de Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 240],
+      "notes": "Parsea el JSON de respuesta de Claude y transforma cada idea al formato de campos de Airtable."
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "baseId": "={{ $env.AIRTABLE_BASE_ID }}",
+        "tableId": "Ideas",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "titulo": "={{ $json.fields.titulo }}",
+            "hook": "={{ $json.fields.hook }}",
+            "concepto": "={{ $json.fields.concepto }}",
+            "formato": "={{ $json.fields.formato }}",
+            "pilar": "={{ $json.fields.pilar }}",
+            "angulo_emocional": "={{ $json.fields.angulo_emocional }}",
+            "palabras_clave": "={{ $json.fields.palabras_clave }}",
+            "urgencia": "={{ $json.fields.urgencia }}",
+            "estimacion_produccion": "={{ $json.fields.estimacion_produccion }}",
+            "estado": "={{ $json.fields.estado }}",
+            "fecha_generacion": "={{ $json.fields.fecha_generacion }}",
+            "semana_numero": "={{ $json.fields.semana_numero }}",
+            "generado_por_ia": "={{ $json.fields.generado_por_ia }}",
+            "modelo_ia": "={{ $json.fields.modelo_ia }}"
+          }
+        },
+        "options": {},
+        "authentication": "airtableTokenApi"
+      },
+      "id": "airtable-guardar-ideas",
+      "name": "Airtable: Guardar Ideas",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1560, 240],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "airtable-cred-id",
+          "name": "Airtable NOA"
+        }
+      },
+      "notes": "Guarda cada idea en la tabla Ideas de Airtable. Se ejecuta una vez por cada idea (10 veces)."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir resumen de las ideas generadas para notificacion\nconst ideas = $input.all();\n\nconst resumen = ideas.map((item, i) => {\n  const f = item.json.fields || item.json;\n  return `${i + 1}. *${f.titulo}*\\n   Formato: ${f.formato} | Pilar: ${f.pilar} | Urgencia: ${f.urgencia}\\n   Hook: _${f.hook}_`;\n}).join('\\n\\n');\n\nconst semanaNum = ideas[0]?.json?.fields?.semana_numero || '?';\nconst fechaHoy = new Date().toLocaleDateString('es-ES', {\n  weekday: 'long', day: 'numeric', month: 'long'\n});\n\nconst mensaje = {\n  text: `*NOA Content System - Ideas Semanales Generadas*`,\n  blocks: [\n    {\n      type: 'header',\n      text: {\n        type: 'plain_text',\n        text: '🧠 NOA: 10 Ideas de Contenido Generadas'\n      }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Semana ${semanaNum}* | ${fechaHoy}\\n${ideas.length} ideas listas para revision en Airtable.`\n      }\n    },\n    {\n      type: 'divider'\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: resumen\n      }\n    },\n    {\n      type: 'actions',\n      elements: [\n        {\n          type: 'button',\n          text: { type: 'plain_text', text: 'Ver Ideas en Airtable' },\n          url: `https://airtable.com/${process.env.AIRTABLE_BASE_ID || 'BASE_ID'}/Ideas`,\n          style: 'primary'\n        }\n      ]\n    }\n  ]\n};\n\nreturn [{ json: mensaje }];"
+      },
+      "id": "code-construir-notificacion",
+      "name": "Code: Construir Notificacion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 240],
+      "notes": "Construye el mensaje de notificacion con el resumen de las 10 ideas generadas."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-notificacion",
+      "name": "HTTP: Slack Notificacion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 240],
+      "notes": "Envia el resumen de ideas al canal de Slack via Incoming Webhook. Placeholder: SLACK_WEBHOOK_URL"
+    },
+    {
+      "parameters": {
+        "operation": "noOp"
+      },
+      "id": "noop-sin-calendario",
+      "name": "NoOp: Sin datos en calendario",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 420],
+      "notes": "Si el calendario esta vacio, el workflow termina aqui sin error. Se puede agregar notificacion de advertencia."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo de manejo de errores - captura y registra errores del workflow\nconst error = $input.first();\n\nconst errorInfo = {\n  workflow: 'NOA - Ideas Semanales',\n  timestamp: new Date().toISOString(),\n  error_message: error.json.message || error.json.error || JSON.stringify(error.json),\n  node_error: error.json.node || 'desconocido'\n};\n\nconsole.error('Error en workflow Ideas Semanales:', JSON.stringify(errorInfo));\n\n// Retornar para posible notificacion de error\nreturn [{ json: errorInfo }];"
+      },
+      "id": "code-error-handler",
+      "name": "Code: Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 500],
+      "notes": "Captura errores del workflow y los registra. Conectar salida de error de nodos criticos aqui."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"*ERROR en NOA Ideas Semanales*\\n```{{ $json.error_message }}```\\nTimestamp: {{ $json.timestamp }}\",\n  \"blocks\": [\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*ERROR en NOA Ideas Semanales*\\n*Mensaje:* {{ $json.error_message }}\\n*Hora:* {{ $json.timestamp }}\"\n      }\n    }\n  ]\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-slack-error",
+      "name": "HTTP: Slack Error Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 500],
+      "notes": "Envia alerta de error al canal de Slack."
+    }
+  ],
+  "connections": {
+    "Trigger: Lunes 8am": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Leer Calendario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Leer Calendario": {
+      "main": [
+        [
+          {
+            "node": "IF: Hay datos en calendario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Hay datos en calendario": {
+      "main": [
+        [
+          {
+            "node": "Code: Construir Prompt Claude",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: Sin datos en calendario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Construir Prompt Claude": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Claude Generar Ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Claude Generar Ideas": {
+      "main": [
+        [
+          {
+            "node": "Code: Parsear Ideas de Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parsear Ideas de Claude": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Guardar Ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Guardar Ideas": {
+      "main": [
+        [
+          {
+            "node": "Code: Construir Notificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Construir Notificacion": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack Notificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Error Handler": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Slack Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "timezone": "Europe/Madrid"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "tag-noa-content",
+      "name": "NOA Content System"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "v1.0.0",
+  "meta": {
+    "instanceId": "noa-coach-instance",
+    "templateCredsSetupCompleted": false
+  },
+  "id": "workflow-ideas-semanales",
+  "active": false
+}
