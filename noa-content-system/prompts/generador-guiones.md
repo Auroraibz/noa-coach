@@ -1,6 +1,94 @@
 # GENERADOR DE GUIONES — NOA CONTENT SYSTEM
 # Prompt de Sistema para Claude API + 7 Plantillas con Contenido Real
-# Versión 2.0 | Todo el contenido en español
+# Versión 3.0 | CTAs por fase de crecimiento | Todo el contenido en español
+
+---
+
+## SISTEMA DE CTAs POR FASE — LEER ANTES DE GENERAR
+
+El error más caro al empezar desde cero en redes: vender antes de tener audiencia.
+Con menos de 5.000 seguidores, un CTA de descarga de app es ruido. Nadie descarga apps de cuentas que no conocen.
+
+La estrategia correcta es construir primero, vender después.
+
+### FASE 1 — CONSTRUCCIÓN (0 a 2.000 seguidores)
+**Objetivo:** Conseguir seguidores y señales de comunidad.
+**CTAs permitidos:** Solo SEGUIR y COMENTAR PALABRA.
+**NOA:** No se menciona todavía. O se menciona solo de pasada, sin CTA.
+
+### FASE 2 — ACTIVACIÓN (2.000 a 10.000 seguidores)
+**Objetivo:** Generar leads calificados y conversaciones.
+**CTAs permitidos:** COMENTAR PALABRA (lead magnet), ¿TE PASA ESTO?
+**NOA:** Se puede mencionar con CTA suave (sin presión de descarga inmediata).
+
+### FASE 3 — CONVERSIÓN (10.000+ seguidores)
+**Objetivo:** Convertir audiencia en usuarias de NOA.
+**CTAs permitidos:** Todos, incluyendo descarga directa de la app.
+**NOA:** CTA directo y explícito al link de descarga.
+
+---
+
+## LOS 3 TIPOS DE CTA — MECÁNICA EXACTA
+
+### TIPO A — SEGUIR
+**Cuándo usar:** En vídeos de alto alcance orgánico (TOFU). Siempre en Fase 1.
+**Mecánica:** Pedir seguir con una razón específica, no genérica.
+
+```
+Regla: nunca digas "sígueme para más contenido". Di por qué vale la pena seguirte.
+
+Plantillas:
+- "Si esto te ha resonado, aquí hablo de esto cada semana. El botón de seguir está ahí."
+- "Subo esto cada semana porque sé que nadie más lo está diciendo. Si lo necesitas, sígueme."
+- "Esto es solo la punta del iceberg. Cada semana un vídeo así. Sígueme para no perdértelos."
+- "Aquí hablo de lo que pasa de verdad en casa con un hijo AACC. Sin filtros. Sígueme."
+- "Si tu hijo y este vídeo se parecen, hay mucho más. Pulsa seguir."
+```
+
+---
+
+### TIPO B — COMENTAR PALABRA (lead magnet por DM)
+**Cuándo usar:** En vídeos de contenido educativo o de herramientas. Fases 1 y 2.
+**Mecánica:** El espectador comenta una palabra clave → recibe contenido de valor por DM automático (vía ManyChat o respuesta manual).
+
+```
+Regla: la palabra debe ser corta, relevante al vídeo, y fácil de recordar.
+El lead magnet debe ser concreto y entregable (PDF, lista, guía de 1 página).
+
+Lead magnets recomendados para NOA:
+- Comentar CALMA → recibe: "5 frases para desactivar una explosión emocional AACC"
+- Comentar FRASES → recibe: "Las 10 frases que cierran y las 10 que abren con tu hijo AACC"
+- Comentar GUÍA → recibe: "Mini-guía: qué hacer en los 3 momentos más difíciles del día"
+- Comentar SEÑALES → recibe: "Lista de 8 señales de que tu hijo AACC está enmascarando"
+- Comentar NOCHE → recibe: "Protocolo de los 20 minutos antes de dormir para cerebros AACC"
+- Comentar DEBERES → recibe: "Guía: por qué fallan los deberes en AACC y qué cambia todo"
+- Comentar EXPLOSIÓN → recibe: "El protocolo de los 3 pasos en los primeros 2 minutos de crisis"
+
+Plantillas de CTA:
+- "Comenta [PALABRA] y te lo mando ahora por DM."
+- "Si quieres [el recurso], escribe [PALABRA] en los comentarios. Te lo envío."
+- "Comenta [PALABRA] y te mando [descripción concreta del recurso]. Gratis."
+```
+
+---
+
+### TIPO C — ¿TE PASA ESTO?
+**Cuándo usar:** En vídeos de reconocimiento emocional. Fases 1 y 2.
+**Mecánica:** Pregunta directa que invita a comentar con respuesta corta (sí/no, número, emoji). Aumenta el engagement y el alcance orgánico.
+
+```
+Regla: la pregunta debe tener una respuesta de 1 a 3 palabras. No hagas preguntas abiertas largas.
+El espectador debe poder responder sin pensar. Debe ser un sí/no emocional inmediato.
+
+Plantillas:
+- "¿Cuántas veces a la semana te pasa esto? Comenta el número."
+- "¿Os ha pasado esto esta semana? Comenta SÍ si es así."
+- "¿Tu hijo tiene esta señal? Comenta cuál de las tres."
+- "¿Reconoces este momento? Comenta AQUÍ si es tu caso."
+- "Dime en comentarios: ¿la primera, la segunda o la tercera?"
+- "¿Es esto lo que pasa en tu casa? Un emoji en comentarios si es así."
+- "¿Cuál es la frase que más repites tú? Escríbela en comentarios."
+```
 
 ---
 
@@ -15,7 +103,13 @@ PRINCIPIOS DE GUIÓN NOA:
 3. ZERO BULLSHIT: Ninguna frase puede ser un comodín motivacional. "Todo va a ir bien", "eres una madre increíble", "confía en ti" — prohibido. Si no puede ser específico, no va.
 4. EL HIJO NO ES EL PROBLEMA: Nunca culpamos al hijo. Nunca. Lo describimos, lo explicamos, lo comprendemos. Pero no lo culpamos.
 5. EL PADRE NO ES EL PROBLEMA: Tampoco culpamos al padre. Describimos su dolor, validamos su confusión, pero nunca le hacemos sentir estúpido por no haber sabido antes.
-6. NOA APARECE COMO CONSECUENCIA: El CTA a NOA no se siente como un anuncio. Se siente como la siguiente pregunta natural: "¿y qué hago con esto que acabo de entender?"
+6. CTA POR FASE: El CTA depende de la fase de crecimiento. Recibirás como input el tipo de CTA (SEGUIR / COMENTAR_PALABRA / TE_PASA_ESTO / DESCARGA_APP). Genera el CTA correspondiente, integrado de forma natural.
+
+TIPOS DE CTA QUE PUEDES RECIBIR:
+- SEGUIR: invita a seguir la cuenta con una razón específica al contenido del vídeo.
+- COMENTAR_PALABRA: pide que comenten una palabra clave para recibir un recurso por DM. Recibirás la palabra y el recurso en el input.
+- TE_PASA_ESTO: pregunta directa de reconocimiento con respuesta de 1-3 palabras.
+- DESCARGA_APP: CTA directo a descargar NOA. Solo para Fase 3 (10k+ seguidores).
 
 FORMATO DE GUIÓN:
 Cada línea del guión va con:
@@ -36,6 +130,7 @@ Devuelve el guión completo con todas las líneas formateadas. Al final, incluye
 - Recuento de palabras
 - Duración estimada en segundos
 - Emoción dominante del vídeo
+- Tipo de CTA usado
 - Sugerencia de hashtags principales (5 máximo)
 ```
 
@@ -82,16 +177,20 @@ TÍTULO INTERNO: Explosion-post-colegio-mascara-social
 [EMOCIÓN]: alivio profundo
 [PAUSA]: larga (1.5s)
 
-[VOZ]: En NOA tienes exactamente qué decir en esos primeros veinte minutos.
-[IMAGEN]: Logo NOA, pantalla de app, fondo cálido
-[EMOCIÓN]: cta
+[VOZ]: ¿Os ha pasado esto esta semana? Comenta SÍ si es así.
+[IMAGEN]: Texto en pantalla: "Comenta SÍ 👇" — tipografía grande, fondo oscuro
+[EMOCIÓN]: cta — TIPO C (¿TE PASA ESTO?)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 88 palabras
+RECUENTO DE PALABRAS: 83 palabras
 DURACIÓN ESTIMADA: 24-26 segundos
 EMOCIÓN DOMINANTE: alivio a través del reencuadre
-HASHTAGS SUGERIDOS: #AltasCapacidades #AdolescenteAACC #MadreAACC #CrianzaConsciente #NOAapp
+TIPO DE CTA: C — ¿TE PASA ESTO? | Usar en Fase 1 y 2
+HASHTAGS SUGERIDOS: #AltasCapacidades #AdolescenteAACC #MadreAACC #CrianzaConsciente #HijosAACC
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"En NOA tienes exactamente qué decir en esos primeros veinte minutos. Enlace en bio."
 ```
 
 ---
@@ -137,16 +236,20 @@ TÍTULO INTERNO: Error-responder-explosion-emocional-hijo
 [EMOCIÓN]: alivio
 [PAUSA]: breve (0.5s)
 
-[VOZ]: NOA te explica cuándo hablar y cuándo lo mejor que puedes hacer es no decir nada.
-[IMAGEN]: Pantalla app NOA, conversación corta, módulo de crisis emocional
-[EMOCIÓN]: cta natural
+[VOZ]: Si quieres saber exactamente qué decir en esos primeros dos minutos, comenta CALMA y te lo mando ahora.
+[IMAGEN]: Texto en pantalla: "Comenta CALMA 👇" — fondo oscuro, tipografía grande en blanco
+[EMOCIÓN]: cta — TIPO B (COMENTAR PALABRA)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 112 palabras
+RECUENTO DE PALABRAS: 116 palabras
 DURACIÓN ESTIMADA: 29-32 segundos
 EMOCIÓN DOMINANTE: comprensión de error sin culpa, con herramienta alternativa
-HASHTAGS SUGERIDOS: #RegulacionEmocional #AACC #MadresAgotadas #HighlyGiftedChild #NOAcoach
+TIPO DE CTA: B — COMENTAR CALMA | Lead magnet: "5 frases para los primeros 2 minutos de una explosión AACC" | Usar en Fase 1 y 2
+HASHTAGS SUGERIDOS: #RegulacionEmocional #AACC #MadresAgotadas #ExplosionEmocional #HijosAACC
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"NOA te explica cuándo hablar y cuándo lo mejor que puedes hacer es no decir nada. Enlace en bio."
 ```
 
 ---
@@ -187,16 +290,20 @@ TÍTULO INTERNO: Frase-destructiva-alternativa-deberes-AACC
 [EMOCIÓN]: alivio práctico
 [PAUSA]: larga (1.5s)
 
-[VOZ]: En NOA tienes más frases así. Para el momento exacto en que no sabes qué decir.
-[IMAGEN]: App NOA, sección de respuestas para momentos de conflicto
-[EMOCIÓN]: cta
+[VOZ]: Comenta FRASES y te mando diez más como esta. Gratis, ahora por DM.
+[IMAGEN]: Texto en pantalla: "Comenta FRASES 👇" — tipografía grande, fondo oscuro
+[EMOCIÓN]: cta — TIPO B (COMENTAR PALABRA)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 98 palabras
+RECUENTO DE PALABRAS: 96 palabras
 DURACIÓN ESTIMADA: 20-23 segundos
 EMOCIÓN DOMINANTE: reconocimiento de error + herramienta inmediata
-HASHTAGS SUGERIDOS: #FrasesParaMadres #AACC #CrianzaPositiva #DeberesCasa #NOAapp
+TIPO DE CTA: B — COMENTAR FRASES | Lead magnet: "10 frases que abren y 10 que cierran con tu hijo AACC" | Usar en Fase 1 y 2
+HASHTAGS SUGERIDOS: #FrasesParaMadres #AACC #CrianzaConsciente #DeberesCasa #HijosAACC
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"En NOA tienes más de cuarenta frases así, organizadas por situación. Enlace en bio."
 ```
 
 ---
@@ -252,16 +359,20 @@ TÍTULO INTERNO: Mini-historia-sabado-cambio-planes-explosion
 [EMOCIÓN]: esperanza práctica
 [PAUSA]: breve (0.5s)
 
-[VOZ]: NOA te explica cómo. Para este caso y para todos los que se repiten.
-[IMAGEN]: App NOA, módulo de hipersensibilidad y cambios
-[EMOCIÓN]: cta
+[VOZ]: Si esto te suena, sígueme. Cada semana cuento una cosa así que nadie más está diciendo.
+[IMAGEN]: Texto en pantalla: "Sígueme para más 👆" — tipografía media, fondo cálido oscuro
+[EMOCIÓN]: cta — TIPO A (SEGUIR)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 138 palabras
+RECUENTO DE PALABRAS: 135 palabras
 DURACIÓN ESTIMADA: 38-42 segundos
 EMOCIÓN DOMINANTE: reconocimiento → comprensión → esperanza práctica
-HASHTAGS SUGERIDOS: #HipersensibilidadAACC #CambiosDePlanes #AdolescenteAACC #NOAapp #MadresQueEntienden
+TIPO DE CTA: A — SEGUIR | Usar en Fase 1 (prioritario en vídeos de alto alcance)
+HASHTAGS SUGERIDOS: #HipersensibilidadAACC #CambiosDePlanes #AdolescenteAACC #MadresAACC #CrianzaReal
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"NOA te explica cómo preparar estos cambios para que no escalen. Para este caso y para todos los que se repiten. Enlace en bio."
 ```
 
 ---
@@ -307,16 +418,20 @@ TÍTULO INTERNO: 3-señales-hijo-AACC-enmascaramiento-colegio
 [EMOCIÓN]: reconocimiento + comprensión
 [PAUSA]: media (1s)
 
-[VOZ]: Si esto te suena, NOA tiene un módulo completo sobre el retorno del colegio. Empieza hoy.
-[IMAGEN]: App NOA, pantalla de módulo específico
-[EMOCIÓN]: cta
+[VOZ]: ¿Tu hijo tiene alguna de estas tres señales? Comenta cuál en los comentarios.
+[IMAGEN]: Texto en pantalla: "¿La 1, la 2 o la 3? 👇" — tipografía grande
+[EMOCIÓN]: cta — TIPO C (¿TE PASA ESTO?)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 132 palabras
+RECUENTO DE PALABRAS: 128 palabras
 DURACIÓN ESTIMADA: 33-37 segundos
 EMOCIÓN DOMINANTE: sorpresa → reconocimiento → comprensión nueva
-HASHTAGS SUGERIDOS: #EnmascaramientoAACC #SenalesAACC #VueltaColegio #MadresAACC #NOAapp
+TIPO DE CTA: C — ¿TE PASA ESTO? | Respuesta de 1 palabra (la 1 / la 2 / las tres) | Usar en Fase 1 y 2
+HASHTAGS SUGERIDOS: #EnmascaramientoAACC #SenalesAACC #VueltaColegio #MadresAACC #HijosAACC
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"Si tu hijo tiene estas señales, NOA tiene un módulo completo sobre el retorno del colegio. Empieza hoy. Enlace en bio."
 ```
 
 ---
@@ -362,16 +477,20 @@ TÍTULO INTERNO: Cuando-hijo-dice-odio-la-escuela-respuesta-padre
 [EMOCIÓN]: alivio práctico
 [PAUSA]: larga (1.5s)
 
-[VOZ]: En NOA tienes respuestas así para las veinte situaciones que más se repiten.
-[IMAGEN]: App NOA, lista de situaciones frecuentes
-[EMOCIÓN]: cta
+[VOZ]: Comenta GUÍA y te mando una lista de respuestas así para los momentos más difíciles. Gratis.
+[IMAGEN]: Texto en pantalla: "Comenta GUÍA 👇" — tipografía grande, fondo oscuro
+[EMOCIÓN]: cta — TIPO B (COMENTAR PALABRA)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 127 palabras
+RECUENTO DE PALABRAS: 128 palabras
 DURACIÓN ESTIMADA: 29-32 segundos
 EMOCIÓN DOMINANTE: reconocimiento de error → herramienta práctica → confianza
-HASHTAGS SUGERIDOS: #RespuestasParaMadres #AACC #ConexionFamiliar #NOAapp #QuéDecir
+TIPO DE CTA: B — COMENTAR GUÍA | Lead magnet: "Mini-guía: qué responder en los 3 momentos más difíciles del día con tu hijo AACC" | Usar en Fase 1 y 2
+HASHTAGS SUGERIDOS: #RespuestasParaMadres #AACC #ConexionFamiliar #ComunicacionFamiliar #HijosAACC
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"En NOA tienes respuestas así para las veinte situaciones que más se repiten. Enlace en bio."
 ```
 
 ---
@@ -407,17 +526,55 @@ TÍTULO INTERNO: NOA-te-diría-no-estas-sola-herramientas
 [EMOCIÓN]: esperanza práctica — no motivacional
 [PAUSA]: larga (1.5s)
 
-[VOZ]: Eso es lo que hace NOA. Enlace en bio.
-[IMAGEN]: Logo NOA, CTA limpio, enlace visible
-[EMOCIÓN]: cta
+[VOZ]: Si hoy ha sido un día duro, sígueme. Aquí hay más de esto cada semana.
+[IMAGEN]: Texto en pantalla: "Sígueme 👆" — tipografía media, fondo oscuro cálido
+[EMOCIÓN]: cta — TIPO A (SEGUIR)
 [PAUSA]: —
 
 ---
-RECUENTO DE PALABRAS: 98 palabras
+RECUENTO DE PALABRAS: 96 palabras
 DURACIÓN ESTIMADA: 24-27 segundos
 EMOCIÓN DOMINANTE: validación profunda → esperanza práctica
-HASHTAGS SUGERIDOS: #NOAapp #MadreAACC #NoEstásSola #CrianzaReal #AltasCapacidades
+TIPO DE CTA: A — SEGUIR | Usar en Fase 1 (especialmente en vídeos emocionales de alta retención)
+HASHTAGS SUGERIDOS: #MadreAACC #NoEstásSola #CrianzaReal #AltasCapacidades #AgotamientoParental
+
+VERSIÓN FASE 3 (10k+ seguidores): sustituir el CTA por →
+"Eso es lo que hace NOA. Algo concreto para mañana. Enlace en bio."
 ```
+
+---
+
+## TABLA RESUMEN — CTAs POR PLANTILLA Y FASE
+
+| Plantilla | CTA Fase 1-2 | Tipo | Palabra/acción | CTA Fase 3 |
+|-----------|-------------|------|----------------|------------|
+| 1 — Lo que parece | ¿Os ha pasado esta semana? Comenta SÍ | C | SÍ | NOA + enlace en bio |
+| 2 — Error típico | Comenta CALMA → protocolo de crisis por DM | B | CALMA | NOA cuándo hablar + enlace |
+| 3 — Frase destructiva | Comenta FRASES → 10 frases que abren/cierran | B | FRASES | NOA + 40 frases + enlace |
+| 4 — Mini historia | Sígueme. Cuento esto cada semana. | A | — | NOA módulo cambios + enlace |
+| 5 — 3 señales | ¿Tu hijo tiene la 1, la 2 o las tres? | C | 1 / 2 / 3 | NOA módulo retorno colegio |
+| 6 — Cuando te responde así | Comenta GUÍA → respuestas para 3 momentos | B | GUÍA | NOA 20 situaciones + enlace |
+| 7 — NOA te diría | Sígueme. Aquí hay más de esto cada semana. | A | — | NOA algo concreto + enlace |
+
+**Distribución recomendada por semana (Fase 1):**
+- 2 CTAs tipo A (seguir) — en vídeos emocionales de alta retención
+- 3 CTAs tipo B (comentar palabra) — en vídeos educativos con herramienta concreta
+- 2 CTAs tipo C (¿te pasa esto?) — en vídeos de reconocimiento y situaciones cotidianas
+
+**Lead magnets activos para CTAs tipo B:**
+
+| Palabra | Recurso que se envía por DM | Formato |
+|---------|----------------------------|---------|
+| CALMA | 5 frases para los primeros 2 minutos de una explosión AACC | PDF 1 página |
+| FRASES | 10 frases que abren y 10 que cierran con tu hijo AACC | PDF 2 páginas |
+| GUÍA | Qué responder en los 3 momentos más difíciles del día | PDF 1 página |
+| SEÑALES | 8 señales de que tu hijo AACC está enmascarando | Lista visual |
+| DEBERES | Por qué fallan los deberes en AACC y qué cambia todo | PDF 1 página |
+| NOCHE | Protocolo de los 20 minutos antes de dormir | PDF 1 página |
+| EXPLOSIÓN | Los 3 pasos en los primeros 2 minutos de crisis | Infografía |
+
+> Para automatizar el envío de DMs usa **ManyChat** (conectado a Instagram) o **Manychat para TikTok**.
+> Coste: desde $15/mes. ROI inmediato si el lead magnet está bien hecho.
 
 ---
 
@@ -490,34 +647,82 @@ def generar_guion(
     plantilla: str,
     tema: str,
     duracion_max: int = 40,
-    emocion_dominante: str = "reconocimiento"
+    emocion_dominante: str = "reconocimiento",
+    cta_tipo: str = "COMENTAR_PALABRA",
+    cta_palabra: str = "CALMA",
+    cta_recurso: str = "5 frases para los primeros 2 minutos de una explosión AACC",
+    fase: int = 1  # 1 = construcción (0-2k), 2 = activación (2k-10k), 3 = conversión (10k+)
 ):
+    """
+    cta_tipo opciones:
+      - "SEGUIR"            → CTA tipo A (construcción de audiencia)
+      - "COMENTAR_PALABRA"  → CTA tipo B (lead magnet por DM)
+      - "TE_PASA_ESTO"      → CTA tipo C (engagement / reconocimiento)
+      - "DESCARGA_APP"      → CTA directo a NOA (solo Fase 3)
+    """
+    if fase < 3 and cta_tipo == "DESCARGA_APP":
+        cta_tipo = "SEGUIR"  # Forzar CTA de construcción en fases tempranas
+
+    cta_instruccion = {
+        "SEGUIR": "Cierra el vídeo con un CTA para seguir la cuenta. Razón específica al contenido del vídeo.",
+        "COMENTAR_PALABRA": f"Cierra el vídeo pidiendo que comenten '{cta_palabra}' para recibir '{cta_recurso}' por DM. Gratis.",
+        "TE_PASA_ESTO": "Cierra el vídeo con una pregunta directa de reconocimiento que tenga respuesta de 1-3 palabras.",
+        "DESCARGA_APP": "Cierra el vídeo con un CTA directo a descargar NOA. Enlace en bio."
+    }[cta_tipo]
+
     user_message = f"""
     Genera un guión usando la plantilla "{plantilla}".
     
     Tema específico: {tema}
     Duración máxima: {duracion_max} segundos
     Emoción dominante objetivo: {emocion_dominante}
+    Fase de crecimiento: {fase} ({"construcción" if fase == 1 else "activación" if fase == 2 else "conversión"})
+    
+    INSTRUCCIÓN DE CTA: {cta_instruccion}
     
     Entrega el guión completo con todas las líneas formateadas según las instrucciones.
-    Al final incluye: recuento de palabras, duración estimada, emoción dominante y 5 hashtags.
+    Al final incluye: recuento de palabras, duración estimada, emoción dominante, tipo de CTA y 5 hashtags.
     """
-    
+
     response = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-sonnet-4-6",
         max_tokens=2048,
         temperature=0.9,
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}]
     )
-    
+
     return response.content[0].text
 
-# Uso:
+# Uso — Fase 1, CTA tipo B (lead magnet):
 guion = generar_guion(
-    plantilla="Lo que parece / lo que realmente pasa",
-    tema="discusión por los deberes a las 7 de la tarde",
+    plantilla="Error típico de los padres",
+    tema="responder 'cálmate' cuando el hijo AACC explota",
     duracion_max=30,
-    emocion_dominante="reconocimiento → alivio"
+    emocion_dominante="comprensión sin culpa",
+    cta_tipo="COMENTAR_PALABRA",
+    cta_palabra="CALMA",
+    cta_recurso="5 frases para los primeros 2 minutos de una explosión emocional AACC",
+    fase=1
+)
+
+# Uso — Fase 1, CTA tipo A (seguir):
+guion = generar_guion(
+    plantilla="Mini historia",
+    tema="cambio de planes el sábado y explosión desproporcionada",
+    duracion_max=40,
+    emocion_dominante="reconocimiento → alivio",
+    cta_tipo="SEGUIR",
+    fase=1
+)
+
+# Uso — Fase 1, CTA tipo C (engagement):
+guion = generar_guion(
+    plantilla="3 señales",
+    tema="señales de enmascaramiento en el colegio",
+    duracion_max=35,
+    emocion_dominante="sorpresa → reconocimiento",
+    cta_tipo="TE_PASA_ESTO",
+    fase=1
 )
 ```
